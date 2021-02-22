@@ -111,18 +111,14 @@ function onArrowClick(up, arrowElementId) {
 
     let numberOfItemClicked = getNumberFromEnd(arrowElementId);
     let isPremise = arrowElementId.endsWith(getPremiseId(numberOfItemClicked));
-    if (!isPremise && !arrowElementId.endsWith(getConclusionId(numberOfItemClicked))) {
-        window.alert("Error - Invalid call from an arrow button!");
-        return;
-    }
 
     let thisInput = document.getElementById(getInputId(isPremise, numberOfItemClicked));
     let otherNumber = numberOfItemClicked + (up ? -1 : 1);
     let otherInput = document.getElementById(getInputId(isPremise, otherNumber));
 
-    let thisValue = thisInput.innerHTML;
-    thisInput.innerHTML = otherInput.innerHTML;
-    otherInput.innerHTML = thisValue;
+    let thisValue = thisInput.value;
+    thisInput.value = otherInput.value;
+    otherInput.value = thisValue;
 }
 
 function onRemoveClick(removeElementId) {
