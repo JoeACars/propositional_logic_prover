@@ -42,6 +42,7 @@ function clearProof() {
     while (proof.children.length > 0) {
         proof.removeChild(proof.children[0]);
     }
+    Line.resetLineNumber();
 }
 
 function padProof() {

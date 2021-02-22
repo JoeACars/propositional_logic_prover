@@ -294,6 +294,10 @@ class Line {
 
     static _maxLineNumber = 0;
 
+    static resetLineNumber() {
+        this._maxLineNumber = 0;
+    }
+
     constructor(lineContent, justification) {
         this._number = ++Line._maxLineNumber;  // line number in the proof
         this._content = lineContent;    // the content of the line - either sentence (and world), or accessibility relation
