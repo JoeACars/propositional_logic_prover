@@ -1,0 +1,44 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Propositional Logic Prover</title>
+    <script src="UserInput.js"></script>
+    <script src="ParseInput.js"></script>
+    <script src="Trees.js"></script>
+    <script src="DisplayProof.js"></script>
+    <script src="Prove.js"></script>
+</head>
+<body>
+    <!-- Select language -->
+    <label for="language">Language:</label>
+    <select id="language" name="language">
+        <option value="classical" selected>Classical Propositional Logic</option>
+    </select>
+
+    <!-- Enter premise set -->
+    <p>Premise set</p>
+    <ol id="premises">
+        <!-- Script will add premises here as user requests -->
+    </ol>
+    <button onclick="addInputItem(true)">Add Premise</button>
+    <br />
+
+    <!-- Enter conclusion set -->
+    <p>Conclusion set</p>
+    <ol id="conclusions">
+        <!-- Script will add conclusions here as user requests -->
+    </ol>
+    <button onclick="addInputItem(false)">Add Conclusion</button>
+    <br />
+    <br />
+
+    <button onclick="clearProof(); validateArgument()">Validate Argument</button>
+
+    <!-- Results -->
+    <p id="validityResult"></p> <!-- valid, invalid or unknown? -->
+    <p id="proofTitle"></p> <!-- Will read "proof" if we found a proof. -->
+    <div id="proof"></div> <!-- Will contain the proof if we found a proof. -->
+</body>
+</html>
