@@ -123,7 +123,7 @@ class TreeProof {
 
 /// A segment in the tree proof, running from a root to an open end, close or split.
 /// Contains the list of lines in the segment.
-class Segment {
+export class Segment {
 
     constructor(parent = null) {
         this._lines = [];       // A list of Lines
@@ -290,7 +290,7 @@ class Segment {
 
 /// A line in the proof.
 /// Contains the line number, line content and justification and can find out whether it is usable or not.
-class Line {
+export class Line {
 
     static _maxLineNumber = 0;
 
@@ -299,26 +299,28 @@ class Line {
     }
 
     constructor(lineContent, justification) {
-        this._number = ++Line._maxLineNumber;  // line number in the proof
-        this._content = lineContent;    // the content of the line - either sentence (and world), or accessibility relation
-        this._justification = justification;    // the justification for adding this line to the proof
+
+        // line number in the proof
+        this._number = ++Line._maxLineNumber;
+
+        // the content of the line - either sentence (and world), or accessibility relation
+        if (!(LineContent instanceof LineContent)) {
+            throw new Error("Line constructor was called without a LineContent object.");
+        }
+        this._content = lineContent;
+
+        // the justification for adding this line to the proof
+        if (!Justification.justifications.includes(justification)) {
+            throw new Error("Line constructor was called without a Justification-type object");
+        }
+        this._justification = justification;    
+
         this._lineLastUsed = null;  // the most recent Line in which this Line was used
 
         // Prepare display string sections: "X.", "sentence (world)" or "wRv", "(justification)"
 
         this._dispStrLineNumber = String(this._number) + ".";
-
-        if (this._content.type === "sentence") {
-            this._dispStrContent = this._content.sentence.displayString();
-            if (this._content.world !== null) {
-                this._dispStrContent += "   ";
-                this._dispStrContent += "(" + this._content.world + ")";
-            }
-        }
-        else if (this._content.type === "access") {
-            alert("Can't display accessibility relations, functionality not implemented!");
-        }
-
+        this._dispStrContent = this._content.getDisplayString();
         this._dispStrJustification = this._justification.displayString();
 
         this._minDisplayWidth = measureWidthInProof(this.getDisplayString());
@@ -446,32 +448,152 @@ function Justification(name, disp, length) {
     justification._length = length;
     justification._name = name;
     justification._disp = disp;
+
+    if (!this.justifications) {
+        this.justifications = [];
+    }
+    this.justifications.push(justification);
+
     return justification;
 
 };
-let JustPremise = Justification("premise", "pr", 0);
-let JustConclusion = Justification("conclusion", "c", 0);
-let JustDNE = Justification("double negation elimination", "", 1);
-let JustSplitDisj = Justification("disjunctive split by cases", "", 1);
-let JustSplitCond = Justification("conditional split by cases", "", 1);
-let JustSplitConj = Justification("conjunctive split by cases", "", 1);
-let JustExpDisj = Justification("disjunctive expansion", "", 1);
-let JustExpConj = Justification("conjunctive expansion", "", 1);
-let JustExpCond = Justification("conditional expansion", "", 1);
+export const JustPremise = Justification("premise", "pr", 0);
+export const JustConclusion = Justification("conclusion", "c", 0);
+export const JustNE = Justification("negation elimination", "", 1);
+export const JustDNE = Justification("double negation elimination", "", 1);
+export const JustSplitDisj = Justification("disjunctive split by cases", "", 1);
+export const JustSplitCond = Justification("conditional split by cases", "", 1);
+export const JustSplitConj = Justification("conjunctive split by cases", "", 1);
+export const JustExpDisj = Justification("disjunctive expansion", "", 1);
+export const JustExpConj = Justification("conjunctive expansion", "", 1);
+export const JustExpCond = Justification("conditional expansion", "", 1);
+
+class LineContent {
+
+    static _sentenceType = "sent";
+    static _accessibilityRelationType = "access";
+    static _types = [this._sentenceType, this._accessibilityRelationType];
+
+    constructor(type) {
+        if (!LineContent._types.includes(type)) {
+            throw new Error(type + " is not a valid type for a LineContent object.");
+        }
+        this._type = type;
+    }
+
+    getDisplayString() {
+        throw new Error("Some LineContent class didn't implement getDisplayString()!");
+    }
+}
 
 /// Makes a new line content object for a sentence holding (at a world, if applicable)
-function LineContentSentence(sentence, truthMarker, world = null) {
-    if (!new.target) return new LineContentSentence(sentence, world);
-    this.type = "sentence";
-    this.sentence = sentence;
-    this.truthMarker = truthMarker;
-    this.world = world;
+export class LineContentSentence extends LineContent {
+
+    constructor(sentence, truthValueMarker = null, world = null) {
+
+        super(super._sentenceType);
+
+        if (truthValueMarker instanceof TruthValueMarker) {
+            this._truthValueMarker = truthValueMarker;
+        }
+        else {
+            this._truthValueMarker = null;
+        }
+
+        if (!(sentence instanceof Sentence)) {
+            throw new Error("LineContentSentence constructor was called without a Sentence.");
+        }
+        this._sentence = sentence;
+
+        this._world = world;
+    }
+
+    getTruthValueMarker() {
+        return this._truthValueMarker;
+    }
+    getSentence() {
+        return this._sentence;
+    }
+    getWorld() {
+        return this._world;
+    }
+
+    getDisplayString() {
+
+        let displayStr = "";
+        if (this._truthValueMarker) {
+            displayStr += this._truthValueMarker.getDisplayString();
+        }
+
+        displayStr += this._sentence.getDisplayString();
+
+        if (this._world) {
+            throw new Error("Worlds aren't implemented yet!");
+        }
+
+        return displayStr;
+    }
 }
 
 /// Makes a new line content object for an accessibility relation, e.g. wRv.
-function LineContentAccessibilityRelation(relation, ...worlds) {
-    if (!new.target) return new LineContentAccessibilityRelation(relation, ...worlds);
-    this.type = "access";
-    this.relation = relation;
-    this.worlds = worlds;
+export class LineContentAccessibilityRelation extends LineContent {
+    constructor(relation, ...worlds) {
+        throw new Error("Accessibility relations are not fully implemented yet!");
+        super(LineContent._accessibilityRelationType);
+        this._relation = relation;
+        this._worlds = worlds;
+    }
 }
+
+/// Represents the truth-value statement associated with a line
+class TruthValueMarker {
+
+    static _true = "t";
+    static _false = "f";
+    static _notTrue = "nt";
+    static _notFalse = "nf";
+    static _truthValues = [_true, _false, _notTrue, _notFalse];
+
+    constructor(code) {
+        if (!_truthValues.includes(code)) {
+            throw new Error("<" + code + "> is not a valid truth value marker code.");
+        }
+        this._code = code;
+
+        let imgSrc = "";
+        if (code === _true) {
+            imgSrc = "truthmarkertrue.png"
+        }
+        else if (code === _false) {
+            imgSrc = "truthmarkerfalse.png"
+        }
+        else if (code === _notTrue) {
+            imgSrc = "truthmarkernottrue.png"
+        }
+        else if (code === _notFalse) {
+            imgSrc = "truthmarkernotfalse.png"
+        }
+        this._disp = "<img style=\"position: relative; top: " + String(lineHeight / 4) + "px\" height = \"11\" width = \"11\" src = \"" + imgSrc + "\" />";
+    }
+
+    isTrue() {
+        return this._code === TruthValueMarker._true;
+    }
+    isFalse() {
+        return this._code === TruthValueMarker._false;
+    }
+    isNotTrue() {
+        return this._code === TruthValueMarker._notTrue;
+    }
+    isNotFalse() {
+        return this._code === TruthValueMarker._notFalse;
+    }
+    getDisplayString() {
+        return this._disp;
+    }
+
+}
+export const truthValueMarkerTrue = new TruthValueMarker("t");
+export const truthValueMarkerFalse = new TruthValueMarker("f");
+export const truthValueMarkerNotTrue = new TruthValueMarker("nt");
+export const truthValueMarkerNotFalse = new TruthValueMarker("nf");
