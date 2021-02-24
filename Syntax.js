@@ -1,7 +1,20 @@
+﻿///////////////////////////////////
+//////////// Syntax.js ////////////
+///////////////////////////////////
+
+/// This file contains everything relating to logical syntax,
+/// including sentence-letters, sentences and operators.
+
+
 "use strict";
 
 
-class Sentence {
+const displayNegation = "¬";
+const displayConjunction = " ∧ ";
+const displayDisjunction = " ∨ ";
+const displayConditional = " → ";
+
+export class Sentence {
 
     constructor(operator, ...args) {
 
@@ -10,19 +23,18 @@ class Sentence {
             return;
         }
 
+        if (operator.isEqual(operators.trivialOperator)) {
+            this._operator = operators.trivialOperator;
+            this._operands = [args[0]];
+        }
+
         if (args.some(arg => !(arg instanceof Sentence) && !sentenceLetterCodes.includes(arg))) {
             alert("Error - provided Sentence constructor with invalid argument.");
             return;
         }
 
-        if (operator.isEqual(trivialOperator)) {
-            this._operator = trivialOperator;
-            this._operands = [args[0]];
-        }
-        else {
-            this._operator = operator;
-            this._operands = args.slice(0, operator.getArity());
-        }
+        this._operator = operator;
+        this._operands = args.slice(0, operator.getArity());
     }
 
     getOperator() {
@@ -30,14 +42,14 @@ class Sentence {
     }
 
     getOperand(index) {
-        if (this._operator.isEqual(trivialOperator) && index === 0) {
+        if (this._operator.isEqual(operators.trivialOperator) && index === 0) {
             return this;
         }
         return this._operands[index];
     }
 
     displayString(outer = true) {
-        if (this._operator.isEqual(trivialOperator)) {
+        if (this._operator.isEqual(operators.trivialOperator)) {
             return this._operands[0];
         }
         else if (this._operator.getArity() === 1) {
@@ -57,7 +69,7 @@ class Sentence {
         if (!this._operator.isEqual(other.getOperator())) {
             return false;
         }
-        if (this._operator.isEqual(trivialOperator)) {
+        if (this._operator.isEqual(operators.trivialOperator)) {
             return this._operands[0] === other._operands[0];
         }
         for (let i = 0; i < other.getOperator().getArity(); i++) {
@@ -69,7 +81,10 @@ class Sentence {
     }
 }
 
-class Operator {
+const displaySentenceLetters = ["p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
+export const sentenceLetters = new Map(displaySentenceLetters.map(char => [char, new Sentence(operators.trivialOperator, char)]));
+
+export class Operator {
 
     static _idsTaken = [];
 
@@ -101,16 +116,16 @@ class Operator {
     }
 
     displayString() {
-        if (this.isEqual(operatorNegation)) {
+        if (this.isEqual(operators.negation)) {
             return displayNegation;
         }
-        if (this.isEqual(operatorConjunction)) {
+        if (this.isEqual(operators.conjunction)) {
             return displayConjunction;
         }
-        if (this.isEqual(operatorDisjunction)) {
+        if (this.isEqual(operators.disjunction)) {
             return displayDisjunction;
         }
-        if (this.isEqual(operatorConditional)) {
+        if (this.isEqual(operators.conditional)) {
             return displayConditional;
         }
         return "#OPERROR#";
@@ -122,8 +137,9 @@ class Operator {
 
 }
 
-const trivialOperator = new Operator("triv", 1);
-const operatorNegation = new Operator("cNot", 1);
-const operatorConjunction = new Operator("cAnd", 2);
-const operatorDisjunction = new Operator("cOr", 2);
-const operatorConditional = new Operator("cCond", 2);
+export const operators;
+Object.defineProperty(operators, "trivialOperator", { value: new Operator("triv", 1), enumerable: true });
+Object.defineProperty(operators, "negation", { value: new Operator("not", 1), enumerable: true });
+Object.defineProperty(operators, "conjunction", { value: new Operator("and", 2), enumerable: true });
+Object.defineProperty(operators, "disjunction", { value: new Operator("or", 2), enumerable: true });
+Object.defineProperty(operators, "conditional", { value: new Operator("cond", 2), enumerable: true });

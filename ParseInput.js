@@ -1,140 +1,43 @@
-﻿"use strict";
+﻿///////////////////////////////////
+////////// ParseInput.js //////////
+///////////////////////////////////
+
+/// This file contains everything relating to parsing,
+/// i.e. turning strings input from the user into Sentence objects.
+
+"use strict";
+
+import {
+    sentenceLetters, 
+    operators
+} from "./Syntax";
+
 
 const negationCodes = ["not", "neg", "negation", "!", "¬", "~", "-"];
 const conjunctionCodes = ["and", "con", "conj", "conjunct", "conjunction", "+", "&", "^"];
 const disjunctionCodes = ["or", "dis", "disj", "disjunct", "disjunction", "v", "/"];
-const conditionalCodes = ["if", "then", "to", "imply", "implies", "->", ">", "sup", "supset", "entail", "entails", "require", "requires", "cond", "conditional", "arrow", "rightarrow", "rarrow"];
+const conditionalCodes = ["if", "only if", "then", "to", "imply", "implies", "means", "->", ">", "sup", "supset", "entail", "entails", "require", "requires", "cond", "conditional", "arrow", "rightarrow", "rarrow"];
+const sentenceLetterCodes = sentenceLetters.keys();
+const getSentenceLetter = sentenceLetters.get;    // Because the keys of sentenceLetters are the same as the sentence letter codes
 
-const sentenceLetterCodes = ["p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
-const sentenceLetters = new Map(sentenceLetterCodes.map(char => [char, new Sentence(trivialOperator, char)]));
+/// Tries to parse the given string into a Sentence.
+/// If successful, returns the Sentence.
+/// Otherwise, returns null.
+export function parseSentence(str) {
 
-const displayNegation = "¬";
-const displayConjunction = " ∧ ";
-const displayDisjunction = " ∨ ";
-const displayConditional = " → ";
+    // Trim whitespace
+    str = str.trim();
 
-const languageClassical = "classical";
-let language = languageClassical;
-
-/// Translates an input code into an operator. If the input
-/// doesn't match any recognised code, returns null.
-/// If no or invalid operatorType is provided, tries all operator types.
-/// operatorType may be "negation", "conjunction", "disjunction" or "conditional".
-function translateOperatorCode(code, operatorType) {
-
-    let checkNegation = (operatorType === "negation");
-    let checkConjunction = (operatorType === "conjunction");
-    let checkDisjunction = (operatorType === "disjunction");
-    let checkConditional = (operatorType === "conditional");
-    if (!checkNegation && !checkConjunction && !checkDisjunction && !checkConditional) {
-        checkNegation = checkConjunction = checkDisjunction = checkConditional = true;
-    }
-
-    if (checkNegation && (negationCodes.indexOf(code) !== -1)) {
-        return operatorNegation;
-    }
-    else if (checkConjunction && (conjunctionCodes.indexOf(code) !== -1)) {
-        return operatorConjunction;
-    }
-    else if (checkDisjunction && (disjunctionCodes.indexOf(code) !== -1)) {
-        return operatorDisjunction;
-    }
-    else if (checkConditional && (conditionalCodes.indexOf(code) !== -1)) {
-        return operatorConditional;
-    }
-    return null;
-}
-
-/// Finds whether the given string starting at the given index matches the search term or not.
-function stringMatchesAt(str, start, search) {
-    try {
-        if (str.length - start < str.search) {
-            return false;
-        }
-        return str.slice(start, start + search.length) === search;
-    }
-    catch {
-        return false;
-    }
-}
-
-/// Searches for a sentence-letter code in the provided string, at the specified start
-/// index. If a sentence-letter is found, returns {code, sent}, where code is the code
-/// found and sent is the sentence letter the code translates to. Otherwise, returns null.
-function parseSentenceLetter(str, start) {
-
-    for (let code of sentenceLetterCodes) {
-        if (stringMatchesAt(str, start, code)) {
-            return { code, sent: sentenceLetters.get(code) };
-        }
-    }
-
-    return null;
-}
-
-/// Searches for an operator code in the provided string, at the specified start index.
-/// If an operator is found, returns {code, op}, where code is the code found and op
-/// is the operator the code translates to. Otherwise, returns null.
-function parseOperator(str, start) {
-
+    // Ensure lower-case
     str = str.toLowerCase();
 
-    for (let code of negationCodes) {
-        if (stringMatchesAt(str, start, code)) {
-            return { code, op: translateOperatorCode(code, "negation") };
-        }
-    }
-
-    for (let code of conjunctionCodes) {
-        if (stringMatchesAt(str, start, code)) {
-            return { code, op: translateOperatorCode(code, "conjunction") };
-        }
-    }
-
-    for (let code of disjunctionCodes) {
-        if (stringMatchesAt(str, start, code)) {
-            return { code, op: translateOperatorCode(code, "disjunction") };
-        }
-    }
-
-    for (let code of conditionalCodes) {
-        if (stringMatchesAt(str, start, code)) {
-            return { code, op: translateOperatorCode(code, "conditional") };
-        }
-    }
-
-    return null;
-
-}
-
-/// Searches for a bracketed expression in the provided string, at the specified start index.
-/// If an operator is found, returns the expression (string) with the outer brackets
-/// trimmed off. If no bracketed expression was found, returns null.
-function parseBracketedExpression(str, start) {
-
-    if (str[start] !== "(") {
+    // Split up into expressions and operators
+    let splitExpr = splitExpression(str);
+    if (splitExpr === null || splitExpr.length === 0) {
         return null;
     }
 
-    let close = start + 1;
-
-    for (let numOpenBrackets = 1; numOpenBrackets > 0; close++) {
-
-        if (close >= str.length) {
-            return null;
-        }
-
-        else if (str[close] === "(") {
-            numOpenBrackets++;
-        }
-
-        else if (str[close] === ")") {
-            numOpenBrackets--;
-        }
-    }
-    close--;
-
-    return str.slice(start + 1, close);
+    return parseSplitExpr(splitExpr);
 
 }
 
@@ -189,21 +92,6 @@ function splitExpression(str) {
 
 }
 
-/// Tries to parse the given split expression into a Sentence by means
-/// of the given binary operation. By default, searches left-to-right.
-/// If successful, returns the parsed Sentence. Otherwise returns null.
-function parseSplitExprByBinaryOp(splitExpr, op, ltr = true) {
-    let step = ltr ? 1 : -1;
-    let start = ltr ? 1 : splitExpr.length - 1;
-    let end = ltr ? splitExpr.length : 0;
-    for (let exprIndex = start; exprIndex != end; exprIndex += step) {
-        if (splitExpr[exprIndex].type === "op" && op.isEqual(splitExpr[exprIndex].val)) {
-            return new Sentence(op, parseSplitExpr(splitExpr.slice(0, exprIndex)), parseSplitExpr(splitExpr.slice(exprIndex + 1)));
-        }
-    }
-    return null;
-}
-
 /// Tries to parse the given split expression into a Sentence.
 /// If successful, returns the Sentence.
 /// Otherwise, returns null.
@@ -223,154 +111,175 @@ function parseSplitExpr(splitExpr) {
     }
 
     // Then conjunctions, left-to-right
-    let parseByConj = parseSplitExprByBinaryOp(splitExpr, operatorConjunction);
+    let parseByConj = parseSplitExprByBinaryOp(splitExpr, operators.conjunction);
     if (parseByConj !== null) {
         return parseByConj;
     }
 
     // Then disjunctions, left-to-right
-    let parseByDisj = parseSplitExprByBinaryOp(splitExpr, operatorDisjunction);
+    let parseByDisj = parseSplitExprByBinaryOp(splitExpr, operators.disjunction);
     if (parseByDisj !== null) {
         return parseByDisj;
     }
 
     // Then conditionals, right-to-left
-    let parseByCond = parseSplitExprByBinaryOp(splitExpr, operatorConditional, false);
+    let parseByCond = parseSplitExprByBinaryOp(splitExpr, operators.conditional, false);
     if (parseByCond !== null) {
         return parseByCond;
     }
 
     // Then negation
-    if (splitExpr[0].type === "op" && operatorNegation.isEqual(splitExpr[0].val)) {
-        return new Sentence(operatorNegation, parseSplitExpr(splitExpr.slice(1)));
+    if (splitExpr[0].type === "op" && operators.negation.isEqual(splitExpr[0].val)) {
+        return new Sentence(operators.negation, parseSplitExpr(splitExpr.slice(1)));
     }
 
     return null;
 
 }
 
-/// Tries to parse the given string into a Sentence.
-/// If successful, returns the Sentence.
-/// Otherwise, returns null.
-function parseSentence(str) {
+/// Searches for a sentence-letter code in the provided string, at the specified start
+/// index. If a sentence-letter is found, returns {code, sent}, where code is the code
+/// found and sent is the sentence letter the code translates to. Otherwise, returns null.
+function parseSentenceLetter(str, start) {
 
-    // Trim whitespace
-    str = str.trim();
+    for (let code of sentenceLetterCodes) {
+        if (stringMatchesAt(str, start, code)) {
+            return { code, sent: getSentenceLetter(code) };
+        }
+    }
 
-    // Ensure lower-case
+    return null;
+}
+
+/// Searches for an operator code in the provided string, at the specified start index.
+/// If an operator is found, returns {code, op}, where code is the code found and op
+/// is the operator the code translates to. Otherwise, returns null.
+function parseOperator(str, start) {
+
     str = str.toLowerCase();
 
-    // Split up into expressions and operators
-    let splitExpr = splitExpression(str);
-    if (splitExpr === null || splitExpr.length === 0) {
+    for (let code of negationCodes) {
+        if (stringMatchesAt(str, start, code)) {
+            return { code, op: translateOperatorCode(code, operators.negation) };
+        }
+    }
+
+    for (let code of conjunctionCodes) {
+        if (stringMatchesAt(str, start, code)) {
+            return { code, op: translateOperatorCode(code, operators.conjunction) };
+        }
+    }
+
+    for (let code of disjunctionCodes) {
+        if (stringMatchesAt(str, start, code)) {
+            return { code, op: translateOperatorCode(code, operators.disjunction) };
+        }
+    }
+
+    for (let code of conditionalCodes) {
+        if (stringMatchesAt(str, start, code)) {
+            return { code, op: translateOperatorCode(code, operators.conditional) };
+        }
+    }
+
+    return null;
+
+}
+
+/// Searches for a bracketed expression in the provided string, at the specified start index.
+/// If an operator is found, returns the expression (string) with the outer brackets
+/// trimmed off. If no bracketed expression was found, returns null.
+function parseBracketedExpression(str, start) {
+
+    if (str[start] !== "(") {
         return null;
     }
 
-    return parseSplitExpr(splitExpr);
+    let close = start + 1;
+
+    for (let numOpenBrackets = 1; numOpenBrackets > 0; close++) {
+
+        if (close >= str.length) {
+            return null;
+        }
+
+        else if (str[close] === "(") {
+            numOpenBrackets++;
+        }
+
+        else if (str[close] === ")") {
+            numOpenBrackets--;
+        }
+    }
+    close--;
+
+    return str.slice(start + 1, close);
 
 }
 
-function validateArgument() {
+/// Translates an input code into an operator. If the input
+/// doesn't match any recognised code, returns null.
+/// If no or invalid operator is provided, tries all operators.
+function translateOperatorCode(code, operator) {
 
-    language = document.getElementById("language").value;
-
-    // Retrieve premises and conclusions
-
-    let premises = [];
-    for (let index = 1, premiseInput = document.getElementById(getInputId(true, index));
-        premiseInput !== null;
-        premiseInput = document.getElementById(getInputId(true, index))) {
-        let premise = parseSentence(premiseInput.value);
-        if (premise === null) {
-            alert("Error! Invalid premise input.");
-            return;
+    // Which operator(s) should we check for?
+    let checkNegation, checkConjunction, checkDisjunction, checkConditional;
+    if (operator instanceof Operator) {
+        let checkNegation = operator.isEqual(operators.negation);
+        let checkConjunction = operator.isEqual(operators.conjunction);
+        let checkDisjunction = operator.isEqual(operators.disjunction);
+        let checkConditional = operator.isEqual(operators.conditional);
+        if (!checkNegation && !checkConjunction && !checkDisjunction && !checkConditional) {
+            checkNegation = checkConjunction = checkDisjunction = checkConditional = true;
         }
-        premises.push(premise);
-        index++;
+    }
+    else {
+        checkNegation = checkConjunction = checkDisjunction = checkConditional = true;
     }
 
-    let conclusions = [];
-    for (let index = 1, conclusionInput = document.getElementById(getInputId(false, index));
-        conclusionInput !== null;
-        conclusionInput = document.getElementById(getInputId(false, index))) {
-        let conclusion = parseSentence(conclusionInput.value);
-        if (conclusion === null) {
-            alert("Error! Invalid conclusion input.");
-            return;
-        }
-        conclusions.push(conclusion);
-        index++;
+    if (checkNegation && (negationCodes.indexOf(code) !== -1)) {
+        return operators.negation;
     }
-
-    if (language === languageClassical) {
-        proveClassicalPropositional(premises, conclusions);
+    else if (checkConjunction && (conjunctionCodes.indexOf(code) !== -1)) {
+        return operators.conjunction;
     }
-
-    let offsetLeft = 20;
-    let offsetTop = 400;
-    TreeProof.display(offsetLeft, offsetTop);
-    displayValidityResult(offsetLeft, offsetTop - lineHeight);
-    padProof();
+    else if (checkDisjunction && (disjunctionCodes.indexOf(code) !== -1)) {
+        return operators.disjunction;
+    }
+    else if (checkConditional && (conditionalCodes.indexOf(code) !== -1)) {
+        return operators.conditional;
+    }
+    return null;
 }
 
-function randomProof(sentences) {
-
-    let lineContents = sentences.map(sentence => new LineContentSentence(sentence));
-    let lines = [];
-
-    // Generate a random proof (for testing purposes)
-
-    function shouldWeSplit() {
-        return Math.random() <= 1 / (1 + Math.sqrt(TreeProof.getLength()));
+/// Finds whether the given string starting at the given index matches the search term or not.
+function stringMatchesAt(str, start, search) {
+    try {
+        if (str.length - start < str.search) {
+            return false;
+        }
+        return str.slice(start, start + search.length) === search;
     }
-
-    function shouldWeClose() {
-        return Math.random() >= 1 / (Math.sqrt(TreeProof.getLength()));
+    catch {
+        return false;
     }
+}
 
-    function pickRandomItem(list) {
-        return list[Math.floor(Math.random() * list.length)];
-    }
+/// Tries to parse the given split expression into a Sentence by means
+/// of the given binary operation. By default, searches left-to-right.
+/// If successful, returns the parsed Sentence. Otherwise returns null.
+function parseSplitExprByBinaryOp(splitExpr, op, ltr = true) {
 
-    function pickRandomJustification() {
-        let justification = pickRandomItem([JustExpCond, JustExpConj, JustExpDisj, JustSplitCond, JustSplitConj, JustSplitDisj]);
-        return new justification(pickRandomItem(lines));
-    }
+    let step = ltr ? 1 : -1;
+    let start = ltr ? 1 : splitExpr.length - 1;
+    let end = ltr ? splitExpr.length : 0;
 
-    let firstLine = new Line(pickRandomItem(lineContents), new JustPremise());
-    console.log(firstLine.getDisplayString());
-    TreeProof.addLine(firstLine);
-    lines.push(firstLine);
-    while (!TreeProof.isComplete()) {
+    for (let exprIndex = start; exprIndex != end; exprIndex += step) {
 
-        if (TreeProof.getLength() > 100) {
-            while (!TreeProof.isComplete()) {
-                console.log("closing segment");
-                TreeProof.closeActiveSegment();
-            }
-            continue;
+        if (splitExpr[exprIndex].type === "op" && op.isEqual(splitExpr[exprIndex].val)) {
+            return new Sentence(op, parseSplitExpr(splitExpr.slice(0, exprIndex)), parseSplitExpr(splitExpr.slice(exprIndex + 1)));
         }
 
-        if (shouldWeClose()) {
-            console.log("closing segment");
-            TreeProof.closeActiveSegment();
-            continue;
-        }
-
-        if (shouldWeSplit()) {
-            let leftLine = new Line(pickRandomItem(lineContents), pickRandomJustification());
-            lines.push(leftLine);
-            console.log("left: " + leftLine.getDisplayString());
-            let rightLine = new Line(pickRandomItem(lineContents), pickRandomJustification());
-            lines.push(rightLine);
-            console.log("right: " + rightLine.getDisplayString());
-            TreeProof.split([leftLine], [rightLine]);
-            continue;
-        }
-
-        let line = new Line(pickRandomItem(lineContents), pickRandomJustification());
-        console.log(line.getDisplayString());
-        lines.push(line);
-        TreeProof.addLine(line);
     }
+    return null;
 }

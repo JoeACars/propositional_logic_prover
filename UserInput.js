@@ -1,3 +1,10 @@
+////////////////////////////////
+///////// UserInput.js /////////
+////////////////////////////////
+
+/// This file contains everything relating to user input.
+
+
 "use strict";
 
 let numPremises = 0;
@@ -8,6 +15,74 @@ let conclusionListId = "conclusions";
 let validityResultId = "validityResult";
 let proofTitleId = "proofTitle";
 let proofListId = "proof";
+
+function Language(id, disp) {
+    this.id = id;
+    this.disp = disp;
+}
+const languageClassical = new Language("classical", "Classical Propositional Logic");
+const languageDefault = languageClassical;
+const languages = [languageClassical];
+
+/// Called when the user presses the "Validate Argument" button.
+/// Retrieves the user inputs, tries to parse them, and if
+/// successful, generates a proof.
+export function validateArgument() {
+
+    language = document.getElementById("language").value;
+
+    // Retrieve premises and conclusions
+
+    let premises = [];
+    for (let index = 1, premiseInput = document.getElementById(getInputId(true, index));
+        premiseInput !== null;
+        premiseInput = document.getElementById(getInputId(true, index))) {
+        let premise = parseSentence(premiseInput.value);
+        if (premise === null) {
+            alert("Error! Invalid premise input.");
+            return;
+        }
+        premises.push(premise);
+        index++;
+    }
+
+    let conclusions = [];
+    for (let index = 1, conclusionInput = document.getElementById(getInputId(false, index));
+        conclusionInput !== null;
+        conclusionInput = document.getElementById(getInputId(false, index))) {
+        let conclusion = parseSentence(conclusionInput.value);
+        if (conclusion === null) {
+            alert("Error! Invalid conclusion input.");
+            return;
+        }
+        conclusions.push(conclusion);
+        index++;
+    }
+
+    if (language === languageClassical) {
+        proveClassicalPropositional(premises, conclusions);
+    }
+
+    let offsetLeft = 20;
+    let offsetTop = 400;
+    TreeProof.display(offsetLeft, offsetTop);
+    displayValidityResult(offsetLeft, offsetTop - lineHeight);
+    padProof();
+}
+
+/// Adds the options for the implemented languages to the user's dropdown.
+export function addLanguageOptions(dropdownId) {
+    let dropdown = document.getElementById(dropdownId);
+    for (language of languages) {
+        let option = document.createElement("option");
+        option.value = language.id;
+        option.innerHTML = language.disp;
+        if (language === languageDefault) {
+            option.selected = true;
+        }
+        dropdown.appendChild(option);
+    }
+}
 
 function getArrowOnClickText(up) {
     return "onArrowClick(" + String(up) + ", this.id)";
@@ -53,7 +128,7 @@ function getLabelValue(isPremise, number) {
     return (isPremise ? "Premise " : "Conclusion ") + String(number) + " :";
 }
 
-function ArrowButton(isPremise, up, number) {
+function makeArrowButton(isPremise, up, number) {
     let arrow = document.createElement("img");
     let direction = up ? "Up" : "Down";
     arrow.setAttribute("id", getArrowId(isPremise, up, number));
@@ -66,7 +141,7 @@ function ArrowButton(isPremise, up, number) {
     return arrow;
 }
 
-function RemoveButton(isPremise, number) {
+function makeRemoveButton(isPremise, number) {
     let remove = document.createElement("img");
     remove.setAttribute("id", getRemoveId(isPremise, number));
     remove.setAttribute("src", "delete.png");
@@ -104,7 +179,7 @@ function getNumberFromEnd(str) {
     return +number;
 }
 
-function onArrowClick(up, arrowElementId) {
+export function onArrowClick(up, arrowElementId) {
 
     up = Boolean(up);
     arrowElementId = String(arrowElementId);
@@ -121,7 +196,7 @@ function onArrowClick(up, arrowElementId) {
     otherInput.value = thisValue;
 }
 
-function onRemoveClick(removeElementId) {
+export function onRemoveClick(removeElementId) {
 
     removeElementId = String(removeElementId);
 
@@ -198,9 +273,9 @@ function addInputItem(isPremise) {
     itemInput.style.position = "absolute";
     itemInput.style.left = "145px";
 
-    let moveUp = ArrowButton(isPremise, true, itemNumber);
-    let moveDown = ArrowButton(isPremise, false, itemNumber);
-    let remove = RemoveButton(isPremise, itemNumber);
+    let moveUp = makeArrowButton(isPremise, true, itemNumber);
+    let moveDown = makeArrowButton(isPremise, false, itemNumber);
+    let remove = makeRemoveButton(isPremise, itemNumber);
     moveUp.style.position = "absolute";
     moveDown.style.position = "absolute";
     remove.style.position = "absolute";
@@ -245,7 +320,7 @@ function enableArrow(arrowElement, up, onclick) {
     arrowElement.setAttribute("onclick", onclick);
 }
 
-function insertExampleInput() {
+export function insertExampleInput() {
     addInputItem(true);
     addInputItem(true);
     addInputItem(true);

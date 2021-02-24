@@ -1,6 +1,18 @@
+////////////////////////////////////
+///////////// Trees.js /////////////
+////////////////////////////////////
+
+/// This file contains everything relating to tree proofs.
+
+import { operators } from ".\Syntax";
+
+"use strict";
+
+
+
 /// The tree proof.
 /// We only do one at any one time, so everything is static.
-class TreeProof {
+export class TreeProof {
 
     static _rootSegment = null;
     static _activeSegment = null;
@@ -310,7 +322,7 @@ export class Line {
         this._content = lineContent;
 
         // the justification for adding this line to the proof
-        if (!Justification.justifications.includes(justification)) {
+        if (!justifications.values().includes(justification)) {
             throw new Error("Line constructor was called without a Justification-type object");
         }
         this._justification = justification;    
@@ -382,11 +394,11 @@ export class Line {
             return true;
         }
         // Sentence-letter?
-        if (sentence.operator.isEqual(trivialOperator)) {
+        if (sentence.operator.isEqual(operators.trivialOperator)) {
             return true;
         }
         // Negated sentence-letter?
-        if (sentence.operator.isEqual(operatorNegation) && hasEqualEntries(sentence.operands[0].operator, trivialOperator)) {
+        if (sentence.operator.isEqual(operators.negation) && hasEqualEntries(sentence.operands[0].operator, operators.trivialOperator)) {
             return true;
         }
         return false;
@@ -457,17 +469,19 @@ function Justification(name, disp, length) {
     return justification;
 
 };
-export const JustPremise = Justification("premise", "pr", 0);
-export const JustConclusion = Justification("conclusion", "c", 0);
-export const JustNE = Justification("negation elimination", "", 1);
-export const JustDNE = Justification("double negation elimination", "", 1);
-export const JustSplitDisj = Justification("disjunctive split by cases", "", 1);
-export const JustSplitCond = Justification("conditional split by cases", "", 1);
-export const JustSplitConj = Justification("conjunctive split by cases", "", 1);
-export const JustExpDisj = Justification("disjunctive expansion", "", 1);
-export const JustExpConj = Justification("conjunctive expansion", "", 1);
-export const JustExpCond = Justification("conditional expansion", "", 1);
+export const justifications;
+Object.defineProperty(justifications, "JustPremise", { value: Justification("premise", "pr", 0), enumerable: true });
+Object.defineProperty(justifications, "Conclusion", { value: Justification("conclusion", "c", 0), enumerable: true });
+Object.defineProperty(justifications, "NE", { value: Justification("negation elimination", "", 1), enumerable: true });
+Object.defineProperty(justifications, "DNE", { value: Justification("double negation elimination", "", 1), enumerable: true });
+Object.defineProperty(justifications, "SplitDisj", { value: Justification("disjunctive split by cases", "", 1), enumerable: true });
+Object.defineProperty(justifications, "SplitCond", { value: Justification("conditional split by cases", "", 1), enumerable: true });
+Object.defineProperty(justifications, "SplitConj", { value: Justification("conjunctive split by cases", "", 1), enumerable: true });
+Object.defineProperty(justifications, "ExpDisj", { value: Justification("disjunctive expansion", "", 1), enumerable: true });
+Object.defineProperty(justifications, "ExpConj", { value: Justification("conjunctive expansion", "", 1), enumerable: true });
+Object.defineProperty(justifications, "ExpCond", { value: Justification("conditional expansion", "", 1), enumerable: true });
 
+/// Base class for LineContent. Shouldn't be instantiated.
 class LineContent {
 
     static _sentenceType = "sent";
