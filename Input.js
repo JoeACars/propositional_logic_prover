@@ -4,32 +4,30 @@
 
 /// This file contains everything relating to user input.
 
-
 "use strict";
+
+const languageSelectId = "language";
+const premiseDivId = "premises";
+const conclusionDivId = "conclusions";
 
 let numPremises = 0;
 let numConclusions = 0;
-let languageSelectId = "language";
-let premiseListId = "premises";
-let conclusionListId = "conclusions";
-let validityResultId = "validityResult";
-let proofTitleId = "proofTitle";
-let proofListId = "proof";
 
+let languages = [];
 function Language(id, disp) {
     this.id = id;
     this.disp = disp;
+    languages.push(this);
 }
 const languageClassical = new Language("classical", "Classical Propositional Logic");
 const languageDefault = languageClassical;
-const languages = [languageClassical];
 
 /// Called when the user presses the "Validate Argument" button.
 /// Retrieves the user inputs, tries to parse them, and if
 /// successful, generates a proof.
 export function validateArgument() {
 
-    language = document.getElementById("language").value;
+    language = document.getElementById(languageSelectId).value;
 
     // Retrieve premises and conclusions
 
@@ -81,6 +79,137 @@ export function addLanguageOptions(dropdownId) {
             option.selected = true;
         }
         dropdown.appendChild(option);
+    }
+}
+
+export function onArrowClick(up, arrowElementId) {
+
+    up = Boolean(up);
+    arrowElementId = String(arrowElementId);
+
+    let numberOfItemClicked = getNumberFromEnd(arrowElementId);
+    let isPremise = arrowElementId.endsWith(getPremiseId(numberOfItemClicked));
+
+    let thisInput = document.getElementById(getInputId(isPremise, numberOfItemClicked));
+    let otherNumber = numberOfItemClicked + (up ? -1 : 1);
+    let otherInput = document.getElementById(getInputId(isPremise, otherNumber));
+
+    let thisValue = thisInput.value;
+    thisInput.value = otherInput.value;
+    otherInput.value = thisValue;
+}
+
+export function onRemoveClick(removeElementId) {
+
+    removeElementId = String(removeElementId);
+
+    let numberOfItemClicked = getNumberFromEnd(removeElementId);
+    let isPremise = removeElementId.endsWith(getPremiseId(numberOfItemClicked));
+    if (!isPremise && !removeElementId.endsWith(getConclusionId(numberOfItemClicked))) {
+        window.alert("Error - Invalid call from a remove button!");
+        return;
+    }
+
+    let item = document.getElementById(getItemId(isPremise, numberOfItemClicked));
+    document.getElementById(isPremise ? premiseDivId : conclusionDivId).removeChild(item);
+
+    let maxItemIndex;
+    if (isPremise) {
+        maxItemIndex = numPremises;
+        numPremises--;
+    }
+    else {
+        maxItemIndex = numConclusions;
+        numConclusions--;
+    }
+    if (maxItemIndex === numberOfItemClicked) {
+        maxItemIndex -= 1;
+    }
+
+    for (let index = numberOfItemClicked + 1; index <= maxItemIndex; index++) {
+        document.getElementById(getItemId(isPremise, index)).setAttribute("id", getItemId(isPremise, index - 1));
+        document.getElementById(getLabelId(isPremise, index)).innerHTML = getLabelValue(isPremise, index - 1);
+        document.getElementById(getLabelId(isPremise, index)).setAttribute("id", getLabelId(isPremise, index - 1));
+        document.getElementById(getInputId(isPremise, index)).setAttribute("id", getInputId(isPremise, index - 1));
+        document.getElementById(getArrowId(isPremise, true, index)).setAttribute("id", getArrowId(isPremise, true, index - 1));
+        document.getElementById(getArrowId(isPremise, false, index)).setAttribute("id", getArrowId(isPremise, false, index - 1));
+        document.getElementById(getRemoveId(isPremise, index)).setAttribute("id", getRemoveId(isPremise, index - 1));
+    }
+
+    maxItemIndex = isPremise ? numPremises : numConclusions;
+
+    if (maxItemIndex === 1) {
+        disableArrow(document.getElementById(getArrowId(isPremise, true, 1)), true);
+    }
+    else if (maxItemIndex > 0) {
+        disableArrow(document.getElementById(getArrowId(isPremise, false, maxItemIndex)), false);
+    }
+}
+
+export function addInputItem(isPremise) {
+
+    isPremise = Boolean(isPremise);
+
+    let itemNumber;
+    if (isPremise) {
+        numPremises++;
+        itemNumber = numPremises;
+    }
+    else {
+        numConclusions++;
+        itemNumber = numConclusions; 
+    }
+
+    let item = document.createElement("item");
+    item.setAttribute("id", getItemId(isPremise, itemNumber));
+
+    let itemLabel = document.createElement("p");
+    itemLabel.setAttribute("id", getLabelId(isPremise, itemNumber));
+    itemLabel.setAttribute("for", getInputId(isPremise, itemNumber));
+    itemLabel.style.display = "inline";
+    itemLabel.innerHTML = getLabelValue(isPremise, itemNumber);
+
+    let itemInput = document.createElement("input");
+    itemInput.setAttribute("id", getInputId(isPremise, itemNumber));
+    itemInput.setAttribute("type", "text");
+    itemInput.setAttribute("size", "64");
+    itemInput.style.position = "absolute";
+    itemInput.style.left = "145px";
+
+    let moveUp = makeArrowButton(isPremise, true, itemNumber);
+    let moveDown = makeArrowButton(isPremise, false, itemNumber);
+    let remove = makeRemoveButton(isPremise, itemNumber);
+    moveUp.style.position = "absolute";
+    moveDown.style.position = "absolute";
+    remove.style.position = "absolute";
+    moveUp.style.left = "615px";
+    moveDown.style.left = "635px";
+    remove.style.left = "655px";
+
+    disableArrow(moveDown, false);
+    if (itemNumber === 1) {
+        disableArrow(moveUp, true);
+    }
+    else {
+        let prevArrowDown = document.getElementById(getArrowId(isPremise, false, itemNumber - 1));
+        enableArrow(prevArrowDown, false, getArrowOnClickText(false));
+    }
+
+    let br1 = document.createElement("br");
+    let br2 = document.createElement("br");
+
+    item.appendChild(itemLabel);
+    item.appendChild(itemInput);
+    item.appendChild(moveUp);
+    item.appendChild(moveDown);
+    item.appendChild(remove);
+    item.appendChild(br1);
+    item.appendChild(br2);
+    if (isPremise) {
+        document.getElementById(premiseDivId).appendChild(item);
+    }
+    else {
+        document.getElementById(conclusionDivId).appendChild(item);
     }
 }
 
@@ -179,137 +308,6 @@ function getNumberFromEnd(str) {
     return +number;
 }
 
-export function onArrowClick(up, arrowElementId) {
-
-    up = Boolean(up);
-    arrowElementId = String(arrowElementId);
-
-    let numberOfItemClicked = getNumberFromEnd(arrowElementId);
-    let isPremise = arrowElementId.endsWith(getPremiseId(numberOfItemClicked));
-
-    let thisInput = document.getElementById(getInputId(isPremise, numberOfItemClicked));
-    let otherNumber = numberOfItemClicked + (up ? -1 : 1);
-    let otherInput = document.getElementById(getInputId(isPremise, otherNumber));
-
-    let thisValue = thisInput.value;
-    thisInput.value = otherInput.value;
-    otherInput.value = thisValue;
-}
-
-export function onRemoveClick(removeElementId) {
-
-    removeElementId = String(removeElementId);
-
-    let numberOfItemClicked = getNumberFromEnd(removeElementId);
-    let isPremise = removeElementId.endsWith(getPremiseId(numberOfItemClicked));
-    if (!isPremise && !removeElementId.endsWith(getConclusionId(numberOfItemClicked))) {
-        window.alert("Error - Invalid call from a remove button!");
-        return;
-    }
-
-    let item = document.getElementById(getItemId(isPremise, numberOfItemClicked));
-    document.getElementById(isPremise ? premiseListId : conclusionListId).removeChild(item);
-
-    let maxItemIndex;
-    if (isPremise) {
-        maxItemIndex = numPremises;
-        numPremises--;
-    }
-    else {
-        maxItemIndex = numConclusions;
-        numConclusions--;
-    }
-    if (maxItemIndex === numberOfItemClicked) {
-        maxItemIndex -= 1;
-    }
-
-    for (let index = numberOfItemClicked + 1; index <= maxItemIndex; index++) {
-        document.getElementById(getItemId(isPremise, index)).setAttribute("id", getItemId(isPremise, index - 1));
-        document.getElementById(getLabelId(isPremise, index)).innerHTML = getLabelValue(isPremise, index - 1);
-        document.getElementById(getLabelId(isPremise, index)).setAttribute("id", getLabelId(isPremise, index - 1));
-        document.getElementById(getInputId(isPremise, index)).setAttribute("id", getInputId(isPremise, index - 1));
-        document.getElementById(getArrowId(isPremise, true, index)).setAttribute("id", getArrowId(isPremise, true, index - 1));
-        document.getElementById(getArrowId(isPremise, false, index)).setAttribute("id", getArrowId(isPremise, false, index - 1));
-        document.getElementById(getRemoveId(isPremise, index)).setAttribute("id", getRemoveId(isPremise, index - 1));
-    }
-
-    maxItemIndex = isPremise ? numPremises : numConclusions;
-
-    if (maxItemIndex === 1) {
-        disableArrow(document.getElementById(getArrowId(isPremise, true, 1)), true);
-    }
-    else if (maxItemIndex > 0) {
-        disableArrow(document.getElementById(getArrowId(isPremise, false, maxItemIndex)), false);
-    }
-}
-
-function addInputItem(isPremise) {
-
-    isPremise = Boolean(isPremise);
-
-    let itemNumber;
-    if (isPremise) {
-        numPremises++;
-        itemNumber = numPremises;
-    }
-    else {
-        numConclusions++;
-        itemNumber = numConclusions; 
-    }
-
-    let item = document.createElement("item");
-    item.setAttribute("id", getItemId(isPremise, itemNumber));
-
-    let itemLabel = document.createElement("p");
-    itemLabel.setAttribute("id", getLabelId(isPremise, itemNumber));
-    itemLabel.setAttribute("for", getInputId(isPremise, itemNumber));
-    itemLabel.style.display = "inline";
-    itemLabel.innerHTML = getLabelValue(isPremise, itemNumber);
-
-    let itemInput = document.createElement("input");
-    itemInput.setAttribute("id", getInputId(isPremise, itemNumber));
-    itemInput.setAttribute("type", "text");
-    itemInput.setAttribute("size", "64");
-    itemInput.style.position = "absolute";
-    itemInput.style.left = "145px";
-
-    let moveUp = makeArrowButton(isPremise, true, itemNumber);
-    let moveDown = makeArrowButton(isPremise, false, itemNumber);
-    let remove = makeRemoveButton(isPremise, itemNumber);
-    moveUp.style.position = "absolute";
-    moveDown.style.position = "absolute";
-    remove.style.position = "absolute";
-    moveUp.style.left = "615px";
-    moveDown.style.left = "635px";
-    remove.style.left = "655px";
-
-    disableArrow(moveDown, false);
-    if (itemNumber === 1) {
-        disableArrow(moveUp, true);
-    }
-    else {
-        let prevArrowDown = document.getElementById(getArrowId(isPremise, false, itemNumber - 1));
-        enableArrow(prevArrowDown, false, getArrowOnClickText(false));
-    }
-
-    let br1 = document.createElement("br");
-    let br2 = document.createElement("br");
-
-    item.appendChild(itemLabel);
-    item.appendChild(itemInput);
-    item.appendChild(moveUp);
-    item.appendChild(moveDown);
-    item.appendChild(remove);
-    item.appendChild(br1);
-    item.appendChild(br2);
-    if (isPremise) {
-        document.getElementById(premiseListId).appendChild(item);
-    }
-    else {
-        document.getElementById(conclusionListId).appendChild(item);
-    }
-}
-
 function disableArrow(arrowElement, up) {
     arrowElement.setAttribute("src", (up ? "up" : "down") + "arrowdisabled.png");
     arrowElement.setAttribute("onclick", "");
@@ -320,7 +318,7 @@ function enableArrow(arrowElement, up, onclick) {
     arrowElement.setAttribute("onclick", onclick);
 }
 
-export function insertExampleInput() {
+/*function insertExampleInput() {
     addInputItem(true);
     addInputItem(true);
     addInputItem(true);
@@ -333,4 +331,4 @@ export function insertExampleInput() {
     document.getElementById(getInputId(false, 1)).value = "not (r and not r) to (not p to p)";
     document.getElementById(getInputId(false, 2)).value = "p to ((q and not q) to p)";
     document.getElementById(getInputId(false, 3)).value = "not not not (s to not t)";
-}
+}*/

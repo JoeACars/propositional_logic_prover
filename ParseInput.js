@@ -7,18 +7,16 @@
 
 "use strict";
 
-import {
-    sentenceLetters, 
-    operators
-} from "./Syntax";
+import Sentence from "./Syntax/Sentence.js";
+import operators from "./Syntax/Operators.js";
 
 
 const negationCodes = ["not", "neg", "negation", "!", "¬", "~", "-"];
 const conjunctionCodes = ["and", "con", "conj", "conjunct", "conjunction", "+", "&", "^"];
 const disjunctionCodes = ["or", "dis", "disj", "disjunct", "disjunction", "v", "/"];
 const conditionalCodes = ["if", "only if", "then", "to", "imply", "implies", "means", "->", ">", "sup", "supset", "entail", "entails", "require", "requires", "cond", "conditional", "arrow", "rightarrow", "rarrow"];
-const sentenceLetterCodes = sentenceLetters.keys();
-const getSentenceLetter = sentenceLetters.get;    // Because the keys of sentenceLetters are the same as the sentence letter codes
+const sentenceLetterCodes = atomicSentences.keys();
+const getAtomicSentence = atomicSentences.get;    // Because the keys of atomicSentences are the same as the sentence letter codes
 
 /// Tries to parse the given string into a Sentence.
 /// If successful, returns the Sentence.
@@ -144,7 +142,7 @@ function parseSentenceLetter(str, start) {
 
     for (let code of sentenceLetterCodes) {
         if (stringMatchesAt(str, start, code)) {
-            return { code, sent: getSentenceLetter(code) };
+            return { code, sent: getAtomicSentence(code) };
         }
     }
 

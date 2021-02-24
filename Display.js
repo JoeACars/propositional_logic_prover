@@ -1,4 +1,15 @@
-﻿let paddingBetweenBranches = 128;
+﻿//////////////////////////////
+//////// Display.js //////////
+//////////////////////////////
+
+/// This file contains functions to do with displaying things to the user.
+
+"use strict";
+
+let validityResultId = "validityResult";
+let proofTitleId = "proofTitle";
+let proofDivId = "proof";
+let paddingBetweenBranches = 128;
 let lineHeight = 22;
 let paddingUnderSplit = 64;
 let lineVerticalPaddingBefore = 16;
@@ -38,7 +49,7 @@ function displayValidityResult(offsetLeft, offsetTop) {
 
 function clearProof() {
     TreeProof.clear();
-    let proof = document.getElementById(proofListId);
+    let proof = document.getElementById(proofDivId);
     while (proof.children.length > 0) {
         proof.removeChild(proof.children[0]);
     }
@@ -46,7 +57,7 @@ function clearProof() {
 }
 
 function padProof() {
-    let proofElems = document.getElementById(proofListId).childNodes.values();
+    let proofElems = document.getElementById(proofDivId).childNodes.values();
     let maxOffsetTop = 0;
     let maxOffsetLeft = 0;
     function getOffsetAsNumber(str) {
@@ -62,7 +73,7 @@ function padProof() {
     pad.style.position = "absolute";
     pad.style.top = String(maxOffsetTop + 2 * lineHeight) + "px";
     pad.style.left = String(maxOffsetLeft + lineHeight) + "px";
-    document.getElementById(proofListId).appendChild(pad);
+    document.getElementById(proofDivId).appendChild(pad);
 }
 
 function drawLineInProof(startX, startY, endX, endY) {
@@ -92,7 +103,7 @@ function drawLineInProof(startX, startY, endX, endY) {
     context.lineTo(canvas.width, isTopToBottom ? canvas.height : 0);
     context.stroke();
 
-    document.getElementById(proofListId).appendChild(canvas);
+    document.getElementById(proofDivId).appendChild(canvas);
 }
 
 function displayXInProof(offsetLeft, offsetTop) {
@@ -107,7 +118,7 @@ function displayXInProof(offsetLeft, offsetTop) {
     x.style.left = String(offsetLeft) + "px";
     x.style.top = String(offsetTop) + "px";
     x.innerHTML = "🞩";
-    document.getElementById(proofListId).appendChild(x);
+    document.getElementById(proofDivId).appendChild(x);
 }
 
 function measureWidthInProof(str) {
