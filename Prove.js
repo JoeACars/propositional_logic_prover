@@ -2,29 +2,29 @@ function proveClassicalPropositional(premises, conclusions) {
 
     // Premises, conclusions
     for (premise of premises) {
-        Proof.addLine(new Line(new LineContentSentence(premise), new JustPremise()));
+        TreeProof.addLine(new Line(new LineContentSentence(premise), new JustPremise()));
     }
     for (conclusion of conclusions) {
-        Proof.addLine(new Line(new LineContentSentence(new Sentence(operatorNegation, conclusion)), new JustConclusion()));
+        TreeProof.addLine(new Line(new LineContentSentence(new Sentence(operatorNegation, conclusion)), new JustConclusion()));
     }
 
-    while (!Proof.isComplete()) {
+    while (!TreeProof.isComplete()) {
 
         // If we have a contradiction, close the active segment
         let activeSentences = [];
-        for (line of Proof.getActiveLines()) {
+        for (line of TreeProof.getActiveLines()) {
             if (line.getLineContent().type === "sentence") {
                 activeSentences.push(line.getLineContent().sentence);
             }
         }
         if (containsContradiction(activeSentences)) {
-            Proof.closeActiveSegment();
+            TreeProof.closeActiveSegment();
             continue;
         }
 
         // Otherwise, see what rules we can apply!
 
-        let usableLines = Proof.getUsableLines();
+        let usableLines = TreeProof.getUsableLines();
         let appliedRule = false;
 
         // First, non-splitting rules:
@@ -38,11 +38,11 @@ function proveClassicalPropositional(premises, conclusions) {
             let sentence = content.sentence;
 
             // Conjunction?
-            if (hasEqualEntries(sentence.operator, operatorConjunction)) {
+            if (sentence.operator.isEqual(operatorConjunction)) {
                 let left = new Line(new LineContentSentence(sentence.operands[0]), new JustExpConj(line));
                 let right = new Line(new LineContentSentence(sentence.operands[1]), new JustExpConj(line));
-                Proof.addLine(left);
-                Proof.addLine(right);
+                TreeProof.addLine(left);
+                TreeProof.addLine(right);
                 line.setUsed(left);
                 line.setUsed(right);
                 appliedRule = true;
@@ -50,11 +50,11 @@ function proveClassicalPropositional(premises, conclusions) {
             }
 
             // Negated disjunction?
-            if (hasEqualEntries(sentence.operator, operatorNegation) && hasEqualEntries(sentence.operands[0].operator, operatorDisjunction)) {
+            if (sentence.operator.isEqual(operatorNegation) && sentence.operands[0].operator.isEqual(operatorDisjunction)) {
                 let left = new Line(new LineContentSentence(new Sentence(operatorNegation, sentence.operands[0].operands[0])), new JustExpDisj(line));
                 let right = new Line(new LineContentSentence(new Sentence(operatorNegation, sentence.operands[0].operands[1])), new JustExpDisj(line));
-                Proof.addLine(left);
-                Proof.addLine(right);
+                TreeProof.addLine(left);
+                TreeProof.addLine(right);
                 line.setUsed(left);
                 line.setUsed(right);
                 appliedRule = true;
@@ -62,11 +62,11 @@ function proveClassicalPropositional(premises, conclusions) {
             }
 
             // Negated conditional?
-            if (hasEqualEntries(sentence.operator, operatorNegation) && hasEqualEntries(sentence.operands[0].operator, operatorConditional)) {
+            if (sentence.operator.isEqual(operatorNegation) && hasEqualEntries(sentence.operands[0].operator, operatorConditional)) {
                 let left = new Line(new LineContentSentence(sentence.operands[0].operands[0]), new JustExpCond(line));
                 let right = new Line(new LineContentSentence(new Sentence(operatorNegation, sentence.operands[0].operands[1])), new JustExpCond(line));
-                Proof.addLine(left);
-                Proof.addLine(right);
+                TreeProof.addLine(left);
+                TreeProof.addLine(right);
                 line.setUsed(left);
                 line.setUsed(right);
                 appliedRule = true;
@@ -74,9 +74,9 @@ function proveClassicalPropositional(premises, conclusions) {
             }
 
             // Double negation?
-            if (hasEqualEntries(sentence.operator, operatorNegation) && hasEqualEntries(sentence.operands[0].operator, operatorNegation)) {
+            if (sentence.operator.isEqual(operatorNegation) && hasEqualEntries(sentence.operands[0].operator, operatorNegation)) {
                 let newLine = new Line(new LineContentSentence(sentence.operands[0].operands[0]), new JustDNE(line));
-                Proof.addLine(newLine);
+                TreeProof.addLine(newLine);
                 line.setUsed(newLine);
                 appliedRule = true;
                 continue;
@@ -98,10 +98,10 @@ function proveClassicalPropositional(premises, conclusions) {
             let sentence = content.sentence;
 
             // Conditional?
-            if (hasEqualEntries(sentence.operator, operatorConditional)) {
+            if (sentence.operator.isEqual(operatorConditional)) {
                 let left = new Line(new LineContentSentence(new Sentence(operatorNegation, sentence.operands[0])), new JustSplitCond(line));
                 let right = new Line(new LineContentSentence(sentence.operands[1]), new JustSplitCond(line));
-                Proof.split([left], [right]);
+                TreeProof.split([left], [right]);
                 line.setUsed(left);
                 line.setUsed(right);
                 appliedRule = true;
@@ -109,10 +109,10 @@ function proveClassicalPropositional(premises, conclusions) {
             }
 
             // Disjunction?
-            if (hasEqualEntries(sentence.operator, operatorDisjunction)) {
+            if (sentence.operator.isEqual(operatorDisjunction)) {
                 let left = new Line(new LineContentSentence(sentence.operands[0]), new JustSplitDisj(line));
                 let right = new Line(new LineContentSentence(sentence.operands[1]), new JustSplitDisj(line));
-                Proof.split([left], [right]);
+                TreeProof.split([left], [right]);
                 line.setUsed(left);
                 line.setUsed(right);
                 appliedRule = true;
@@ -120,10 +120,10 @@ function proveClassicalPropositional(premises, conclusions) {
             }
 
             // Negated conjunction?
-            if (hasEqualEntries(sentence.operator, operatorNegation) && hasEqualEntries(sentence.operands[0].operator, operatorConjunction)) {
+            if (sentence.operator.isEqual(operatorNegation) && hasEqualEntries(sentence.operands[0].operator, operatorConjunction)) {
                 let left = new Line(new LineContentSentence(new Sentence(operatorNegation, sentence.operands[0].operands[0])), new JustSplitConj(line));
                 let right = new Line(new LineContentSentence(new Sentence(operatorNegation, sentence.operands[0].operands[1])), new JustSplitConj(line));
-                Proof.split([left], [right]);
+                TreeProof.split([left], [right]);
                 line.setUsed(left);
                 line.setUsed(right);
                 appliedRule = true;
@@ -134,12 +134,12 @@ function proveClassicalPropositional(premises, conclusions) {
 
         // If we can't do anything, the segment must be left open!
         if (!appliedRule) {
-            Proof.leaveActiveSegmentOpen();
+            TreeProof.leaveActiveSegmentOpen();
         }
     }
 
 }
 
 function containsContradiction(sentences) {
-    return sentences.some(sentence => hasEqualEntries(sentence.operator, operatorNegation) && sentences.some(otherSentence => areSentencesEqual(sentence.operands[0], otherSentence)));
+    return sentences.some(sentence => sentence.operator.isEqual(operatorNegation) && sentences.some(otherSentence => otherSentence.isEqual(sentence.operands[0])));
 }

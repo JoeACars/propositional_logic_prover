@@ -1,6 +1,6 @@
 /// The tree proof.
 /// We only do one at any one time, so everything is static.
-class Proof {
+class TreeProof {
 
     static _rootSegment = null;
     static _activeSegment = null;
@@ -328,7 +328,7 @@ class Line {
 
         // Line number
         let displayStr = this._dispStrLineNumber;
-        let numSpacesAfterLineNumber = String(Proof.getLength()).length + 2 - displayStr.length;
+        let numSpacesAfterLineNumber = String(TreeProof.getLength()).length + 2 - displayStr.length;
         for (let i = 0; i < numSpacesAfterLineNumber; i++) {
             displayStr += " ";
         }
@@ -380,11 +380,11 @@ class Line {
             return true;
         }
         // Sentence-letter?
-        if (hasEqualEntries(sentence.operator, trivialOperator)) {
+        if (sentence.operator.isEqual(trivialOperator)) {
             return true;
         }
         // Negated sentence-letter?
-        if (hasEqualEntries(sentence.operator, operatorNegation) && hasEqualEntries(sentence.operands[0].operator, trivialOperator)) {
+        if (sentence.operator.isEqual(operatorNegation) && hasEqualEntries(sentence.operands[0].operator, trivialOperator)) {
             return true;
         }
         return false;
@@ -460,11 +460,12 @@ let JustExpConj = Justification("conjunctive expansion", "", 1);
 let JustExpCond = Justification("conditional expansion", "", 1);
 
 /// Makes a new line content object for a sentence holding (at a world, if applicable)
-function LineContentSentence(sentence, world = null) {
+function LineContentSentence(sentence, truthMarker, world = null) {
     if (!new.target) return new LineContentSentence(sentence, world);
     this.type = "sentence";
-    this.world = world;
     this.sentence = sentence;
+    this.truthMarker = truthMarker;
+    this.world = world;
 }
 
 /// Makes a new line content object for an accessibility relation, e.g. wRv.

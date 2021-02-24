@@ -1,67 +1,12 @@
 ﻿"use strict";
 
-function hasEqualEntries(obj1, obj2) {
-    for (let [key, value] of Object.entries(obj1)) {
-        if (obj2[key] !== value) {
-            return false;
-        }
-    }
-    for (let [key, value] of Object.entries(obj2)) {
-        if (obj1[key] !== value) {
-            return false;
-        }
-    }
-    return true;
-}
-
-function Operator(id, arity) {
-    id = String(id);
-    arity = +arity;
-    arity = arity >= 0 ? arity : -arity;
-    arity -= arity % 1;
-    this.id = id;
-    this.arity = arity;
-    this.displayString = function () {
-        if (hasEqualEntries(this, getNegation())) {
-            return displayNegation;
-        }
-        if (hasEqualEntries(this, getConjunction())) {
-            return displayConjunction;
-        }
-        if (hasEqualEntries(this, getDisjunction())) {
-            return displayDisjunction;
-        }
-        if (hasEqualEntries(this, getConditional())) {
-            return displayConditional;
-        }
-        return "#OPERROR#";
-    };
-}
-
-function isOperator(obj) {
-    if (obj === undefined || obj === null) {
-        return false;
-    }
-    if ("id" in obj && "arity" in obj) {
-        return true;
-    }
-    return false;
-}
-
-const trivialOperator = new Operator("triv", 1);
-const operatorNegation = new Operator("cNot", 1);
-const operatorConjunction = new Operator("cAnd", 2);
-const operatorDisjunction = new Operator("cOr", 2);
-const operatorConditional = new Operator("cCond", 2);
-
 const negationCodes = ["not", "neg", "negation", "!", "¬", "~", "-"];
 const conjunctionCodes = ["and", "con", "conj", "conjunct", "conjunction", "+", "&", "^"];
 const disjunctionCodes = ["or", "dis", "disj", "disjunct", "disjunction", "v", "/"];
 const conditionalCodes = ["if", "then", "to", "imply", "implies", "->", ">", "sup", "supset", "entail", "entails", "require", "requires", "cond", "conditional", "arrow", "rightarrow", "rarrow"];
 
 const sentenceLetterCodes = ["p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
-const sentenceLetters = sentenceLetterCodes.map(char => new Sentence(trivialOperator, char));
-function getSentenceLetter(code) { return sentenceLetters.find(phi => phi.operands[0] === code); }
+const sentenceLetters = new Map(sentenceLetterCodes.map(char => [char, new Sentence(trivialOperator, char)]));
 
 const displayNegation = "¬";
 const displayConjunction = " ∧ ";
@@ -70,96 +15,6 @@ const displayConditional = " → ";
 
 const languageClassical = "classical";
 let language = languageClassical;
-
-function getNegation() {
-    if (language === languageClassical) {
-        return operatorNegation;
-    }
-}
-
-function getConjunction() {
-    if (language === languageClassical) {
-        return operatorConjunction;
-    }
-}
-
-function getDisjunction() {
-    if (language === languageClassical) {
-        return operatorDisjunction;
-    }
-}
-
-function getConditional() {
-    if (language === languageClassical) {
-        return operatorConditional;
-    }
-}
-
-function isSentence(obj) {
-    if (obj === null || obj === undefined) {
-        return false;
-    }
-    if (!("operator" in obj && "operands" in obj)) {
-        return false;
-    }
-    if (!isOperator(obj.operator)) {
-        return false;
-    }
-    if (obj.operator.arity !== obj.operands.length) {
-        return false;
-    }
-    if (sentenceLetters.some(value => hasEqualEntries(obj, value))) {
-        return true;
-    }
-    for (let operand of obj.operands) {
-        if (!isSentence(operand)) {
-            return false;
-        }
-    }
-    return true;
-}
-
-function areSentencesEqual(sentence1, sentence2) {
-    if (!isSentence(sentence1) || !isSentence(sentence2)) {
-        return false;
-    }
-    if (!hasEqualEntries(sentence1.operator, sentence2.operator)) {
-        return false;
-    }
-    if (hasEqualEntries(sentence1.operator, trivialOperator)) {
-        return sentence1.operands[0] === sentence2.operands[0];
-    }
-    for (let i = 0; i < sentence1.operator.arity; i++) {
-        if (!areSentencesEqual(sentence1.operands[i], sentence2.operands[i])) {
-            return false;
-        }
-    }
-    return true;
-}
-
-function Sentence(operator, ...args) {
-    if (hasEqualEntries(trivialOperator, operator)) {
-        this.operator = trivialOperator;
-        this.operands = [args[0]];
-    }
-    else {
-        this.operator = operator;
-        this.operands = args.slice(0, operator.arity);
-    }
-    this.displayString = function (outer = true) {
-        if (hasEqualEntries(trivialOperator, this.operator)) {
-            return this.operands[0];
-        }
-        else if (this.operator.arity === 1) {
-            return this.operator.displayString() + this.operands[0].displayString(false);
-        }
-        else if (this.operator.arity === 2) {
-            let dispString = this.operands[0].displayString(false) + this.operator.displayString() + this.operands[1].displayString(false);
-            return outer ? dispString : ("(" + dispString + ")");
-        }
-        return "#DISPERROR#";
-    };
-}
 
 /// Translates an input code into an operator. If the input
 /// doesn't match any recognised code, returns null.
@@ -176,16 +31,16 @@ function translateOperatorCode(code, operatorType) {
     }
 
     if (checkNegation && (negationCodes.indexOf(code) !== -1)) {
-        return getNegation();
+        return operatorNegation;
     }
     else if (checkConjunction && (conjunctionCodes.indexOf(code) !== -1)) {
-        return getConjunction();
+        return operatorConjunction;
     }
     else if (checkDisjunction && (disjunctionCodes.indexOf(code) !== -1)) {
-        return getDisjunction();
+        return operatorDisjunction;
     }
     else if (checkConditional && (conditionalCodes.indexOf(code) !== -1)) {
-        return getConditional();
+        return operatorConditional;
     }
     return null;
 }
@@ -210,7 +65,7 @@ function parseSentenceLetter(str, start) {
 
     for (let code of sentenceLetterCodes) {
         if (stringMatchesAt(str, start, code)) {
-            return { code, sent: getSentenceLetter(code) };
+            return { code, sent: sentenceLetters.get(code) };
         }
     }
 
@@ -342,7 +197,7 @@ function parseSplitExprByBinaryOp(splitExpr, op, ltr = true) {
     let start = ltr ? 1 : splitExpr.length - 1;
     let end = ltr ? splitExpr.length : 0;
     for (let exprIndex = start; exprIndex != end; exprIndex += step) {
-        if (splitExpr[exprIndex].type === "op" && hasEqualEntries(splitExpr[exprIndex].val, op)) {
+        if (splitExpr[exprIndex].type === "op" && op.isEqual(splitExpr[exprIndex].val)) {
             return new Sentence(op, parseSplitExpr(splitExpr.slice(0, exprIndex)), parseSplitExpr(splitExpr.slice(exprIndex + 1)));
         }
     }
@@ -368,26 +223,26 @@ function parseSplitExpr(splitExpr) {
     }
 
     // Then conjunctions, left-to-right
-    let parseByConj = parseSplitExprByBinaryOp(splitExpr, getConjunction());
+    let parseByConj = parseSplitExprByBinaryOp(splitExpr, operatorConjunction);
     if (parseByConj !== null) {
         return parseByConj;
     }
 
     // Then disjunctions, left-to-right
-    let parseByDisj = parseSplitExprByBinaryOp(splitExpr, getDisjunction());
+    let parseByDisj = parseSplitExprByBinaryOp(splitExpr, operatorDisjunction);
     if (parseByDisj !== null) {
         return parseByDisj;
     }
 
     // Then conditionals, right-to-left
-    let parseByCond = parseSplitExprByBinaryOp(splitExpr, getConditional(), false);
+    let parseByCond = parseSplitExprByBinaryOp(splitExpr, operatorConditional, false);
     if (parseByCond !== null) {
         return parseByCond;
     }
 
     // Then negation
-    if (splitExpr[0].type === "op" && hasEqualEntries(splitExpr[0].val, getNegation())) {
-        return new Sentence(getNegation(), parseSplitExpr(splitExpr.slice(1)));
+    if (splitExpr[0].type === "op" && operatorNegation.isEqual(splitExpr[0].val)) {
+        return new Sentence(operatorNegation, parseSplitExpr(splitExpr.slice(1)));
     }
 
     return null;
@@ -453,7 +308,7 @@ function validateArgument() {
 
     let offsetLeft = 20;
     let offsetTop = 400;
-    Proof.display(offsetLeft, offsetTop);
+    TreeProof.display(offsetLeft, offsetTop);
     displayValidityResult(offsetLeft, offsetTop - lineHeight);
     padProof();
 }
@@ -466,11 +321,11 @@ function randomProof(sentences) {
     // Generate a random proof (for testing purposes)
 
     function shouldWeSplit() {
-        return Math.random() <= 1 / (1 + Math.sqrt(Proof.getLength()));
+        return Math.random() <= 1 / (1 + Math.sqrt(TreeProof.getLength()));
     }
 
     function shouldWeClose() {
-        return Math.random() >= 1 / (Math.sqrt(Proof.getLength()));
+        return Math.random() >= 1 / (Math.sqrt(TreeProof.getLength()));
     }
 
     function pickRandomItem(list) {
@@ -484,21 +339,21 @@ function randomProof(sentences) {
 
     let firstLine = new Line(pickRandomItem(lineContents), new JustPremise());
     console.log(firstLine.getDisplayString());
-    Proof.addLine(firstLine);
+    TreeProof.addLine(firstLine);
     lines.push(firstLine);
-    while (!Proof.isComplete()) {
+    while (!TreeProof.isComplete()) {
 
-        if (Proof.getLength() > 100) {
-            while (!Proof.isComplete()) {
+        if (TreeProof.getLength() > 100) {
+            while (!TreeProof.isComplete()) {
                 console.log("closing segment");
-                Proof.closeActiveSegment();
+                TreeProof.closeActiveSegment();
             }
             continue;
         }
 
         if (shouldWeClose()) {
             console.log("closing segment");
-            Proof.closeActiveSegment();
+            TreeProof.closeActiveSegment();
             continue;
         }
 
@@ -509,13 +364,13 @@ function randomProof(sentences) {
             let rightLine = new Line(pickRandomItem(lineContents), pickRandomJustification());
             lines.push(rightLine);
             console.log("right: " + rightLine.getDisplayString());
-            Proof.split([leftLine], [rightLine]);
+            TreeProof.split([leftLine], [rightLine]);
             continue;
         }
 
         let line = new Line(pickRandomItem(lineContents), pickRandomJustification());
         console.log(line.getDisplayString());
         lines.push(line);
-        Proof.addLine(line);
+        TreeProof.addLine(line);
     }
 }

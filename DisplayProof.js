@@ -25,19 +25,19 @@ function displayValidityResult(offsetLeft, offsetTop) {
     let validityResult = document.getElementById(validityResultId);
     validityResult.style.position = "absolute";
     let validityStr;
-    if (Proof.isValid()) {
+    if (TreeProof.isValid()) {
         validityStr = "<span style=\"color: green\">VALID</span>";
     }
     else {
         validityStr = "<span style=\"color: red\">INVALID</span>";
     }
-    validityResult.style.left = String(offsetLeft + ((Proof.getDisplayWidth() - measureWidthInProof(validityStr)) / 2)) + "px";
+    validityResult.style.left = String(offsetLeft + ((TreeProof.getDisplayWidth() - measureWidthInProof(validityStr)) / 2)) + "px";
     validityResult.style.top = String(offsetTop) + "px";
     validityResult.innerHTML = validityStr;
 }
 
 function clearProof() {
-    Proof.clear();
+    TreeProof.clear();
     let proof = document.getElementById(proofListId);
     while (proof.children.length > 0) {
         proof.removeChild(proof.children[0]);
