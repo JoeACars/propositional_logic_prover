@@ -4,7 +4,6 @@ import Segment from "./Segment.js";
 import Line from "./Line.js";
 
 /// The tree proof.
-/// We only do one at any one time, so everything is static.
 export default class TreeProof {
 
     static _rootSegment = null;
@@ -38,11 +37,15 @@ export default class TreeProof {
     static getDisplayWidth() {
         if (!this._rootSegment) return 0;
         if (!this._isComplete) return NaN;
-        return this._rootSegment.getLocalMinDisplayWidth();
+        return this._rootSegment.getMinDisplayWidth();
     }
 
     static getLength() {
-        return Line.getMaxLineNumber() - 1;
+        return Line.getMaxLineNumber();
+    }
+
+    static getRootSegment() {
+        return this._rootSegment;
     }
 
     static addLine(line) {
@@ -114,14 +117,5 @@ export default class TreeProof {
 
     static _lock() {
         this._isComplete = true;
-        this._rootSegment.calculateLocalMinDisplayWidth();
-    }
-
-    static display(offsetLeft = 10, offsetTop = 500) {
-        if (!this._rootSegment) {
-            console.log("Can't display proof - empty!")
-            return;
-        }
-        this._rootSegment.display(offsetLeft, offsetTop);
     }
 }

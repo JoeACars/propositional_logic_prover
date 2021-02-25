@@ -6,6 +6,10 @@
 
 "use strict";
 
+import displayTreeProof from "./Display/DisplayTreeProof.js";
+import parseInput from "./ParseInput.js";
+import { proveClassicalPropositional } from "./Prove.js";
+
 const languageSelectId = "language";
 const premiseDivId = "premises";
 const conclusionDivId = "conclusions";
@@ -22,12 +26,20 @@ function Language(id, disp) {
 const languageClassical = new Language("classical", "Classical Propositional Logic");
 const languageDefault = languageClassical;
 
+export function onClickAddPremise() {
+    addInputItem(true);
+}
+
+export function onClickAddConclusion() {
+    addInputItem(false);
+}
+
 /// Called when the user presses the "Validate Argument" button.
 /// Retrieves the user inputs, tries to parse them, and if
 /// successful, generates a proof.
-export function validateArgument() {
+export function onClickValidateArgument() {
 
-    language = document.getElementById(languageSelectId).value;
+    let language = document.getElementById(languageSelectId).value;
 
     // Retrieve premises and conclusions
 
@@ -35,7 +47,7 @@ export function validateArgument() {
     for (let index = 1, premiseInput = document.getElementById(getInputId(true, index));
         premiseInput !== null;
         premiseInput = document.getElementById(getInputId(true, index))) {
-        let premise = parseSentence(premiseInput.value);
+        let premise = parseInput(premiseInput.value);
         if (premise === null) {
             alert("Error! Invalid premise input.");
             return;
@@ -48,7 +60,7 @@ export function validateArgument() {
     for (let index = 1, conclusionInput = document.getElementById(getInputId(false, index));
         conclusionInput !== null;
         conclusionInput = document.getElementById(getInputId(false, index))) {
-        let conclusion = parseSentence(conclusionInput.value);
+        let conclusion = parseInput(conclusionInput.value);
         if (conclusion === null) {
             alert("Error! Invalid conclusion input.");
             return;
@@ -57,21 +69,19 @@ export function validateArgument() {
         index++;
     }
 
-    if (language === languageClassical) {
+    if (language === languageClassical.id) {
         proveClassicalPropositional(premises, conclusions);
     }
 
     let offsetLeft = 20;
     let offsetTop = 400;
-    TreeProof.display(offsetLeft, offsetTop);
-    displayValidityResult(offsetLeft, offsetTop - lineHeight);
-    padProof();
+    displayTreeProof(offsetLeft, offsetTop);
 }
 
 /// Adds the options for the implemented languages to the user's dropdown.
-export function addLanguageOptions(dropdownId) {
-    let dropdown = document.getElementById(dropdownId);
-    for (language of languages) {
+export function addLanguageOptions() {
+    let dropdown = document.getElementById(languageSelectId);
+    for (let language of languages) {
         let option = document.createElement("option");
         option.value = language.id;
         option.innerHTML = language.disp;
@@ -82,7 +92,15 @@ export function addLanguageOptions(dropdownId) {
     }
 }
 
-export function onArrowClick(up, arrowElementId) {
+function onArrowClickUp(event) {
+    onArrowClick(true, event.target.id);
+}
+
+function onArrowClickDown(event) {
+    onArrowClick(false, event.target.id);
+}
+
+function onArrowClick(up, arrowElementId) {
 
     up = Boolean(up);
     arrowElementId = String(arrowElementId);
@@ -99,9 +117,9 @@ export function onArrowClick(up, arrowElementId) {
     otherInput.value = thisValue;
 }
 
-export function onRemoveClick(removeElementId) {
+export function onRemoveClick(event) {
 
-    removeElementId = String(removeElementId);
+    let removeElementId = event.target.id;
 
     let numberOfItemClicked = getNumberFromEnd(removeElementId);
     let isPremise = removeElementId.endsWith(getPremiseId(numberOfItemClicked));
@@ -192,7 +210,7 @@ export function addInputItem(isPremise) {
     }
     else {
         let prevArrowDown = document.getElementById(getArrowId(isPremise, false, itemNumber - 1));
-        enableArrow(prevArrowDown, false, getArrowOnClickText(false));
+        enableArrow(prevArrowDown, false);
     }
 
     let br1 = document.createElement("br");
@@ -266,7 +284,7 @@ function makeArrowButton(isPremise, up, number) {
     arrow.setAttribute("title", "Move " + direction);
     arrow.setAttribute("height", "18");
     arrow.setAttribute("width", "18");
-    arrow.setAttribute("onclick", getArrowOnClickText(up));
+    arrow.addEventListener("click", up ? onArrowClickUp : onArrowClickDown);
     return arrow;
 }
 
@@ -278,7 +296,7 @@ function makeRemoveButton(isPremise, number) {
     remove.setAttribute("title", "Remove");
     remove.setAttribute("height", "18");
     remove.setAttribute("width", "18");
-    remove.setAttribute("onclick", getRemoveOnClickText());
+    remove.addEventListener("click", onRemoveClick);
     return remove;
 }
 
@@ -310,12 +328,12 @@ function getNumberFromEnd(str) {
 
 function disableArrow(arrowElement, up) {
     arrowElement.setAttribute("src", (up ? "up" : "down") + "arrowdisabled.png");
-    arrowElement.setAttribute("onclick", "");
+    arrowElement.removeEventListener("click", up ? onArrowClickUp : onArrowClickDown);
 }
 
-function enableArrow(arrowElement, up, onclick) {
+function enableArrow(arrowElement, up) {
     arrowElement.setAttribute("src", (up ? "up" : "down") + "arrow.png");
-    arrowElement.setAttribute("onclick", onclick);
+    arrowElement.addEventListener("click", up ? onArrowClickUp : onArrowClickDown);
 }
 
 /*function insertExampleInput() {

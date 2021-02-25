@@ -6,8 +6,13 @@
 
 "use strict";
 
+import makeTreeProofParagraph from "./MakeTreeProofParagraph.js";
+import measureWidthInProof from "./MeasureWidthInProof.js";
+import { TreeProof } from "../Prove.js";
+import Segment from "../TreeProofs/Segment.js";
+import Line from "../TreeProofs/Line.js";
+
 let validityResultId = "validityResult";
-let proofTitleId = "proofTitle";
 let proofDivId = "proof";
 let paddingBetweenBranches = 128;
 let lineHeight = 22;
@@ -15,14 +20,62 @@ let paddingUnderSplit = 64;
 let lineVerticalPaddingBefore = 16;
 let lineVerticalPaddingAfter = -10;
 
-function makeProofParagraph(str, offsetLeft = 0, offsetTop = 0) {
-    let para = document.createElement("p");
-    para.style.whiteSpace = "pre";
-    para.style.position = "absolute";
-    para.style.left = String(offsetLeft) + "px";
-    para.style.top = String(offsetTop) + "px";
-    para.innerHTML = str;
-    return para;
+export default function displayTreeProof(offsetLeft = 10, offsetTop = 500) {
+    clearProof();
+    if (TreeProof.getLength() === 0) {
+        console.log("Proof was empty!");
+        return;
+    }
+    displaySegment(TreeProof.getRootSegment(), offsetLeft, offsetTop);
+    displayValidityResult(offsetLeft, offsetTop - lineHeight);
+    padProof();
+}
+
+/// Display a Segment, along with all its child Segments
+function displaySegment(segment, offsetLeft, offsetTop) {
+
+    if (!(segment instanceof Segment)) {
+        throw new Error("displaySegment() was called without a Segment!");
+    }
+
+    // First, display this segment's lines
+    let ownLinesWidth = segment.getOwnLinesMaxDisplayWidth();
+    let ownLinesOffsetLeft = offsetLeft + ((segment.getMinDisplayWidth() - ownLinesWidth) / 2);
+    for (let line of segment.getLines()) {
+        displayLine(line, ownLinesOffsetLeft, offsetTop, ownLinesWidth);
+        offsetTop += lineHeight;
+    }
+
+    // If open, that's all!
+    if (segment.isEndOpen()) {
+        return;
+    }
+
+    // If close, display an x and finish.
+    if (segment.isEndClose()) {
+        displayXInProof(offsetLeft + (ownLinesWidth / 2), offsetTop);
+        return;
+    }
+
+    // Otherwise split, so display child segments
+    let children = segment.getChildren();
+    let childWidths = children.map(child => child.getMinDisplayWidth());
+    let offsetTopChildren = offsetTop + paddingUnderSplit;
+    let lineStartX = ownLinesOffsetLeft + (ownLinesWidth / 2);
+    let lineStartY = offsetTop + lineVerticalPaddingBefore;
+    let lineEndY = offsetTopChildren - lineVerticalPaddingAfter;
+    for (let i = 0; i < children.length; i++) {
+        drawLineInProof(lineStartX, lineStartY, offsetLeft + (childWidths[i] / 2), lineEndY);
+        children[i].display(offsetLeft, offsetTopChildren);
+        offsetLeft += childWidths[i] + paddingBetweenBranches;
+    }
+}
+
+function displayLine(line, offsetLeft, offsetTop, width) {
+    let excessWidth = width - line.getMinDisplayWidth();
+    let numSpaces = excessWidth / spaceWidthInProof();
+    let para = makeTreeProofParagraph(line.getDisplayString(numSpaces), offsetLeft, offsetTop);
+    document.getElementById(proofDivId).appendChild(para);
 }
 
 function spaceWidthInProof() {
@@ -32,7 +85,7 @@ function spaceWidthInProof() {
     return this._value;
 }
 
-function displayValidityResult(offsetLeft, offsetTop) {
+export function displayValidityResult(offsetLeft, offsetTop) {
     let validityResult = document.getElementById(validityResultId);
     validityResult.style.position = "absolute";
     let validityStr;
@@ -47,7 +100,7 @@ function displayValidityResult(offsetLeft, offsetTop) {
     validityResult.innerHTML = validityStr;
 }
 
-function clearProof() {
+export function clearProof() {
     TreeProof.clear();
     let proof = document.getElementById(proofDivId);
     while (proof.children.length > 0) {
@@ -56,7 +109,7 @@ function clearProof() {
     Line.resetLineNumber();
 }
 
-function padProof() {
+export function padProof() {
     let proofElems = document.getElementById(proofDivId).childNodes.values();
     let maxOffsetTop = 0;
     let maxOffsetLeft = 0;
@@ -76,7 +129,7 @@ function padProof() {
     document.getElementById(proofDivId).appendChild(pad);
 }
 
-function drawLineInProof(startX, startY, endX, endY) {
+export function drawLineInProof(startX, startY, endX, endY) {
 
     // Always go left-to-right
     if (startX > endX) {
@@ -106,7 +159,7 @@ function drawLineInProof(startX, startY, endX, endY) {
     document.getElementById(proofDivId).appendChild(canvas);
 }
 
-function displayXInProof(offsetLeft, offsetTop) {
+export function displayXInProof(offsetLeft, offsetTop) {
 
     if (!this._count) {
         this._count = 1;
@@ -119,13 +172,4 @@ function displayXInProof(offsetLeft, offsetTop) {
     x.style.top = String(offsetTop) + "px";
     x.innerHTML = "🞩";
     document.getElementById(proofDivId).appendChild(x);
-}
-
-function measureWidthInProof(str) {
-    let para = makeProofParagraph(str);
-    para.style.color = "white";
-    document.body.appendChild(para);
-    let width = para.clientWidth;
-    document.body.removeChild(para);
-    return width;
 }

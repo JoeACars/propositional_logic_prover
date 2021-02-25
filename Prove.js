@@ -13,14 +13,15 @@ import { LineContentSentence } from "./TreeProofs/LineContent.js";
 import Sentence from "./Syntax/Sentence.js";
 import operators from "./Syntax/Operators.js";
 
+export { TreeProof };
 
 export function proveClassicalPropositional(premises, conclusions) {
 
     // Premises, conclusions
-    for (premise of premises) {
+    for (let premise of premises) {
         TreeProof.addLine(new Line(new LineContentSentence(premise), new justifications.Premise()));
     }
-    for (conclusion of conclusions) {
+    for (let conclusion of conclusions) {
         TreeProof.addLine(new Line(new LineContentSentence(new Sentence(operators.negation, conclusion)), new justifications.Conclusion()));
     }
 
@@ -28,9 +29,9 @@ export function proveClassicalPropositional(premises, conclusions) {
 
         // If we have a contradiction, close the active segment
         let activeSentences = [];
-        for (line of TreeProof.getActiveLines()) {
+        for (let line of TreeProof.getActiveLines()) {
             if (line.getLineContent() instanceof LineContentSentence) {
-                activeSentences.push(line.getLineContent().sentence);
+                activeSentences.push(line.getLineContent().getSentence());
             }
         }
         if (containsContradiction(activeSentences)) {
@@ -51,10 +52,10 @@ export function proveClassicalPropositional(premises, conclusions) {
             if (!(content instanceof LineContentSentence)) {
                 continue;
             }
-            let sentence = content.sentence;
+            let sentence = content.getSentence();
 
             // Conjunction?
-            if (sentence.operator.isEqual(operators.conjunction)) {
+            if (sentence.getOperator().isEqual(operators.conjunction)) {
                 let left = new Line(new LineContentSentence(sentence.operands[0]), new justifications.ExpandConj(line));
                 let right = new Line(new LineContentSentence(sentence.operands[1]), new justifications.ExpandConj(line));
                 TreeProof.addLine(left);
@@ -66,7 +67,7 @@ export function proveClassicalPropositional(premises, conclusions) {
             }
 
             // Negated disjunction?
-            if (sentence.operator.isEqual(operators.negation) && sentence.operands[0].operator.isEqual(operators.disjunction)) {
+            if (sentence.getOperator().isEqual(operators.negation) && sentence.operands[0].getOperator().isEqual(operators.disjunction)) {
                 let left = new Line(new LineContentSentence(new Sentence(operators.negation, sentence.operands[0].operands[0])), new justifications.ExpandDisj(line));
                 let right = new Line(new LineContentSentence(new Sentence(operators.negation, sentence.operands[0].operands[1])), new justifications.ExpandDisj(line));
                 TreeProof.addLine(left);
@@ -78,7 +79,7 @@ export function proveClassicalPropositional(premises, conclusions) {
             }
 
             // Negated conditional?
-            if (sentence.operator.isEqual(operators.negation) && hasEqualEntries(sentence.operands[0].operator, operators.conditional)) {
+            if (sentence.getOperator().isEqual(operators.negation) && hasEqualEntries(sentence.operands[0].getOperator(), operators.conditional)) {
                 let left = new Line(new LineContentSentence(sentence.operands[0].operands[0]), new justifications.ExpandCond(line));
                 let right = new Line(new LineContentSentence(new Sentence(operators.negation, sentence.operands[0].operands[1])), new justifications.ExpandCond(line));
                 TreeProof.addLine(left);
@@ -90,7 +91,7 @@ export function proveClassicalPropositional(premises, conclusions) {
             }
 
             // Double negation?
-            if (sentence.operator.isEqual(operators.negation) && hasEqualEntries(sentence.operands[0].operator, operators.negation)) {
+            if (sentence.getOperator().isEqual(operators.negation) && hasEqualEntries(sentence.operands[0].getOperator(), operators.negation)) {
                 let newLine = new Line(new LineContentSentence(sentence.operands[0].operands[0]), new justifications.DoubleNegationElim(line));
                 TreeProof.addLine(newLine);
                 line.setUsed(newLine);
@@ -105,16 +106,16 @@ export function proveClassicalPropositional(premises, conclusions) {
         }
 
         // Now, splitting rules. One at a time!
-        for (line of usableLines) {
+        for (let line of usableLines) {
 
             let content = line.getLineContent();
             if (content instanceof LineContentSentence) {
                 continue;
             }
-            let sentence = content.sentence;
+            let sentence = content.getSentence();
 
             // Conditional?
-            if (sentence.operator.isEqual(operators.conditional)) {
+            if (sentence.getOperator().isEqual(operators.conditional)) {
                 let left = new Line(new LineContentSentence(new Sentence(operators.negation, sentence.operands[0])), new justifications.SplitCond(line));
                 let right = new Line(new LineContentSentence(sentence.operands[1]), new justifications.SplitCond(line));
                 TreeProof.split([left], [right]);
@@ -125,7 +126,7 @@ export function proveClassicalPropositional(premises, conclusions) {
             }
 
             // Disjunction?
-            if (sentence.operator.isEqual(operators.disjunction)) {
+            if (sentence.getOperator().isEqual(operators.disjunction)) {
                 let left = new Line(new LineContentSentence(sentence.operands[0]), new justifications.SplitDisj(line));
                 let right = new Line(new LineContentSentence(sentence.operands[1]), new justifications.SplitDisj(line));
                 TreeProof.split([left], [right]);
@@ -136,7 +137,7 @@ export function proveClassicalPropositional(premises, conclusions) {
             }
 
             // Negated conjunction?
-            if (sentence.operator.isEqual(operators.negation) && hasEqualEntries(sentence.operands[0].operator, operators.conjunction)) {
+            if (sentence.getOperator().isEqual(operators.negation) && hasEqualEntries(sentence.operands[0].getOperator(), operators.conjunction)) {
                 let left = new Line(new LineContentSentence(new Sentence(operators.negation, sentence.operands[0].operands[0])), new justifications.SplitConj(line));
                 let right = new Line(new LineContentSentence(new Sentence(operators.negation, sentence.operands[0].operands[1])), new justifications.SplitConj(line));
                 TreeProof.split([left], [right]);
@@ -153,11 +154,13 @@ export function proveClassicalPropositional(premises, conclusions) {
             TreeProof.leaveActiveSegmentOpen();
         }
     }
+    
+    return TreeProof;
 
 }
 
 function containsContradiction(sentences) {
-    return sentences.some(sentence => sentence.operator.isEqual(operators.negation) && sentences.some(otherSentence => otherSentence.isEqual(sentence.operands[0])));
+    return sentences.some(sentence => sentence.getOperator().isEqual(operators.negation) && sentences.some(otherSentence => otherSentence.isEqual(sentence.operands[0])));
 }
 
 export function randomProof(sentences) {
@@ -185,7 +188,7 @@ export function randomProof(sentences) {
     }
 
     let firstLine = new Line(pickRandomItem(lineContents), new justifications.Premise());
-    console.log(firstLine.getDisplayString());
+    console.log(operators.getDisplayString(operatorsfirstLine));
     TreeProof.addLine(firstLine);
     lines.push(firstLine);
     while (!TreeProof.isComplete()) {

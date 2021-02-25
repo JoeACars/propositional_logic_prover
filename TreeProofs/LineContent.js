@@ -27,9 +27,9 @@ export class LineContentSentence extends LineContent {
 
     constructor(sentence, truthValueMarker = null, world = null) {
 
-        super(super._sentenceType);
+        super(LineContent._sentenceType);
 
-        if (truthValueMarkers.includes(truthValueMarker)) {
+        if (Object.values(truthValueMarkers).includes(truthValueMarker)) {
             this._truthValueMarker = truthValueMarker;
         }
         else {

@@ -24,7 +24,7 @@ function Justification(name, disp, length) {
             return this._args[index];
         }
 
-        displayString() {
+        getDisplayString() {
 
             let displayStr = "(";
 
@@ -44,20 +44,14 @@ function Justification(name, disp, length) {
             return displayStr;
         }
     };
-    justification.name = name;
     justification._length = length;
     justification._name = name;
     justification._disp = disp;
 
-    if (!this.justifications) {
-        this.justifications = [];
-    }
-    this.justifications.push(justification);
-
     return justification;
-
 };
 
+/// List of justifications
 const justifications = {
     Premise: Justification("premise", "pr", 0),
     Conclusion: Justification("conclusion", "c", 0),

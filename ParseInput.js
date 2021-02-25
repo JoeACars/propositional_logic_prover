@@ -15,13 +15,16 @@ const negationCodes = ["not", "neg", "negation", "!", "¬", "~", "-"];
 const conjunctionCodes = ["and", "con", "conj", "conjunct", "conjunction", "+", "&", "^"];
 const disjunctionCodes = ["or", "dis", "disj", "disjunct", "disjunction", "v", "/"];
 const conditionalCodes = ["if", "only if", "then", "to", "imply", "implies", "means", "->", ">", "sup", "supset", "entail", "entails", "require", "requires", "cond", "conditional", "arrow", "rightarrow", "rarrow"];
-const sentenceLetterCodes = atomicSentences.keys();
-const getAtomicSentence = atomicSentences.get;    // Because the keys of atomicSentences are the same as the sentence letter codes
+const sentenceLetterCodes = Array.from(Sentence.getAtomicSentences().keys());
+function getAtomicSentence(code) {
+    // The keys of atomicSentences are the same as the sentence letter codes
+    return Sentence.getAtomicSentences().get(code);
+}
 
 /// Tries to parse the given string into a Sentence.
 /// If successful, returns the Sentence.
 /// Otherwise, returns null.
-export function parseSentence(str) {
+export default function parseInput(str) {
 
     // Trim whitespace
     str = str.trim();

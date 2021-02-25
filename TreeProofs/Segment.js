@@ -23,7 +23,6 @@ export default class Segment {
 
     getLength() {
         return this._lines.length;
-        return this._lines.length;
     }
 
     isFinished() {
@@ -69,9 +68,13 @@ export default class Segment {
         return this._children.find(child => !child.isFinished());
     }
 
+    getChildren() {
+        return this._children;
+    }
+
     getUsableLines() {
         let usableLines = [];
-        for (line of this._lines) {
+        for (let line of this._lines) {
             if (line.isUsable()) {
                 usableLines.push(line);
             }
@@ -91,12 +94,26 @@ export default class Segment {
         return activeLines;
     }
 
-    getLocalMinDisplayWidth() {
-        return this._localMinDisplayWidth;
+    getLines() {
+        return this._lines;
+    }
+
+    getOwnLinesMaxDisplayWidth() {
+        if (!this._ownLinesMaxDisplayWidth) {
+            this._ownLinesMaxDisplayWidth = Math.max(...this._lines.map(line => line.getMinDisplayWidth()))
+        }
+        return this._ownLinesMaxDisplayWidth;
+    }
+
+    getMinDisplayWidth() {
+        if (!this._minDisplayWidth) {
+            this._calculateMinDisplayWidth();
+        }
+        return this._minDisplayWidth;
     }
 
     /// Calculates the min display width of this segment, including its children
-    calculateLocalMinDisplayWidth() {
+    _calculateMinDisplayWidth() {
 
         // First, max min width of any lines in this segment
         let thisMaxMinWidth = 0;
@@ -108,13 +125,13 @@ export default class Segment {
         let splitMinWidth = 0;
         if (this.isEndSplit()) {
             this._children.forEach(child => {
-                child.calculateLocalMinDisplayWidth();
-                splitMinWidth += child.getLocalMinDisplayWidth();
+                child._calculateMinDisplayWidth();
+                splitMinWidth += child.getMinDisplayWidth();
             });
             splitMinWidth += paddingBetweenBranches * (this._children.length - 1);
         }
 
-        this._localMinDisplayWidth = Math.max(thisMaxMinWidth, splitMinWidth);
+        this._minDisplayWidth = Math.max(thisMaxMinWidth, splitMinWidth);
 
     }
 
@@ -131,47 +148,14 @@ export default class Segment {
         this._children = children;
     }
 
-    /// Display this segment, including all its child segments
-    display(offsetLeft, offsetTop) {
-
-        // First, display this segment's lines
-        let thisSegmentWidth = Math.max(...this._lines.map(line => line.getMinDisplayWidth()));
-        let thisSegmentOffsetLeft = offsetLeft + ((this._localMinDisplayWidth - thisSegmentWidth) / 2);
-        for (let line of this._lines) {
-            line.display(thisSegmentOffsetLeft, offsetTop, thisSegmentWidth);
-            offsetTop += lineHeight;
-        }
-
-        // If open, that's all!
-        if (this.isEndOpen()) {
-            return;
-        }
-
-        // If close, display an x and finish.
-        if (this.isEndClose()) {
-            displayXInProof(offsetLeft + (thisSegmentWidth / 2), offsetTop);
-            return;
-        }
-
-        // Otherwise split, so display child segments
-        let childWidths = this._children.map(child => child.getLocalMinDisplayWidth());
-        let offsetTopChildren = offsetTop + paddingUnderSplit;
-        let lineStartX = thisSegmentOffsetLeft + (thisSegmentWidth / 2);
-        let lineStartY = offsetTop + lineVerticalPaddingBefore;
-        let lineEndY = offsetTopChildren - lineVerticalPaddingAfter;
-        for (let i = 0; i < this._children.length; i++) {
-            drawLineInProof(lineStartX, lineStartY, offsetLeft + (childWidths[i] / 2), lineEndY);
-            this._children[i].display(offsetLeft, offsetTopChildren);
-            offsetLeft += childWidths[i] + paddingBetweenBranches;
-        }
-    }
-
     addLine(line) {
         if (!(line instanceof Line)) {
             throw new Error("addLine() was called on a Segment without providing a Line.");
 		}
         if (!this.hasLine(line)) {
             this._lines.push(line);
+            this._minDisplayWidth = null;
+            this._ownLinesMaxDisplayWidth = null;
         }
     }
 }

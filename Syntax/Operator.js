@@ -8,12 +8,12 @@ export default class Operator {
 
         // Check id is unique
         id = String(id);
-        if (_idsTaken.includes(id)) {
+        if (Operator._idsTaken.includes(id)) {
             alert("Error! Tried to re-use an operator id.");
             return;
         }
 
-        _idsTaken.push(id);
+        Operator._idsTaken.push(id);
         this._id = id;
 
         arity = +arity;

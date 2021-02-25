@@ -1,10 +1,12 @@
 "use strict";
 
+const imgOffsetTop = 5.5;
+const imgHeight = 11;
 const codeTrue = "t";
 const codeFalse = "f";
 const codeNotTrue = "nt";
 const codeNotFalse = "nf";
-const truthValueMarkerCodes = [_true, _false, _notTrue, _notFalse];
+const truthValueMarkerCodes = [codeTrue, codeFalse, codeNotTrue, codeNotFalse];
 
 /// Represents the truth-value statement associated with a line
 class TruthValueMarker {
@@ -28,7 +30,11 @@ class TruthValueMarker {
         else if (code === codeNotFalse) {
             imgSrc = "truthmarkernotfalse.png"
         }
-        this._disp = "<img style=\"position: relative; top: " + String(lineHeight / 4) + "px\" height = \"11\" width = \"11\" src = \"" + imgSrc + "\" />";
+        this._disp = "<img style=\"position: relative; "
+                        + "top: " + String(imgOffsetTop) + "px\" "
+                        + "height = \"" + String(imgHeight) + "\" "
+                        + "width = \"" + String(imgHeight) + "\" "
+                        + "src = \"" + imgSrc + "\" />";
     }
 
     isTrue() {
@@ -53,7 +59,7 @@ const truthValueMarkers = {
     isTrue: new TruthValueMarker(codeTrue),
     isFalse: new TruthValueMarker(codeFalse),
     isNotTrue: new TruthValueMarker(codeNotTrue),
-    isNotFalse: new TruthValueMarker(codeNotFalse),
+    isNotFalse: new TruthValueMarker(codeNotFalse)
 };
 Object.freeze(truthValueMarkers);
 export default truthValueMarkers;
