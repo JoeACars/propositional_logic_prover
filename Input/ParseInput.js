@@ -7,9 +7,8 @@
 
 "use strict";
 
-import Sentence from "./Syntax/Sentence.js";
-import Operator from "./Syntax/Operator.js";
-import operators from "./Syntax/Operators.js";
+import Sentence from "../Syntax/Sentence.js";
+import operators from "../Syntax/Operators.js";
 
 
 const negationCodes = ["not", "neg", "negation", "!", "¬", "~", "-"];
