@@ -3,21 +3,16 @@
 import { isLineContent } from "./LineContent.js";
 import justifications from "./Justifications.js";
 import measureWidthInProof from "../Display/MeasureWidthInProof.js";
+import operators from "../Syntax/Operators.js";
 
 /// A line in the proof.
 /// Contains the line number, line content and justification and can find out whether it is usable or not.
 export default class Line {
 
-    static _maxLineNumber = 0;
-
-    static resetLineNumber() {
-        this._maxLineNumber = 0;
-    }
-
-    constructor(lineContent, justification) {
+    constructor(lineNumber, lineContent, justification) {
 
         // line number in the proof
-        this._number = ++Line._maxLineNumber;
+        this._number = lineNumber;
 
         // the content of the line - either sentence (and world), or accessibility relation
         if (!isLineContent(lineContent)) {
@@ -70,10 +65,6 @@ export default class Line {
         return this._number;
     }
 
-    static getMaxLineNumber() {
-        return this._maxLineNumber;
-    }
-
     getLineContent() {
         return this._content;
     }
@@ -96,7 +87,7 @@ export default class Line {
             return true;
         }
         // Negated sentence-letter?
-        if (sentence.getOperator().isEqual(operators.negation) && hasEqualEntries(sentence.operands[0].getOperator(), operators.trivialOperator)) {
+        if (sentence.getOperator().isEqual(operators.negation) && operators.trivialOperator.isEqual(sentence.getOperand(0).getOperator())) {
             return true;
         }
         return false;

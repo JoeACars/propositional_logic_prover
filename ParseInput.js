@@ -8,6 +8,7 @@
 "use strict";
 
 import Sentence from "./Syntax/Sentence.js";
+import Operator from "./Syntax/Operator.js";
 import operators from "./Syntax/Operators.js";
 
 
@@ -161,25 +162,25 @@ function parseOperator(str, start) {
 
     for (let code of negationCodes) {
         if (stringMatchesAt(str, start, code)) {
-            return { code, op: translateOperatorCode(code, operators.negation) };
+            return { code, op: operators.negation };
         }
     }
 
     for (let code of conjunctionCodes) {
         if (stringMatchesAt(str, start, code)) {
-            return { code, op: translateOperatorCode(code, operators.conjunction) };
+            return { code, op: operators.conjunction };
         }
     }
 
     for (let code of disjunctionCodes) {
         if (stringMatchesAt(str, start, code)) {
-            return { code, op: translateOperatorCode(code, operators.disjunction) };
+            return { code, op: operators.disjunction };
         }
     }
 
     for (let code of conditionalCodes) {
         if (stringMatchesAt(str, start, code)) {
-            return { code, op: translateOperatorCode(code, operators.conditional) };
+            return { code, op: operators.conditional };
         }
     }
 
@@ -216,41 +217,6 @@ function parseBracketedExpression(str, start) {
 
     return str.slice(start + 1, close);
 
-}
-
-/// Translates an input code into an operator. If the input
-/// doesn't match any recognised code, returns null.
-/// If no or invalid operator is provided, tries all operators.
-function translateOperatorCode(code, operator) {
-
-    // Which operator(s) should we check for?
-    let checkNegation, checkConjunction, checkDisjunction, checkConditional;
-    if (operator instanceof Operator) {
-        let checkNegation = operator.isEqual(operators.negation);
-        let checkConjunction = operator.isEqual(operators.conjunction);
-        let checkDisjunction = operator.isEqual(operators.disjunction);
-        let checkConditional = operator.isEqual(operators.conditional);
-        if (!checkNegation && !checkConjunction && !checkDisjunction && !checkConditional) {
-            checkNegation = checkConjunction = checkDisjunction = checkConditional = true;
-        }
-    }
-    else {
-        checkNegation = checkConjunction = checkDisjunction = checkConditional = true;
-    }
-
-    if (checkNegation && (negationCodes.indexOf(code) !== -1)) {
-        return operators.negation;
-    }
-    else if (checkConjunction && (conjunctionCodes.indexOf(code) !== -1)) {
-        return operators.conjunction;
-    }
-    else if (checkDisjunction && (disjunctionCodes.indexOf(code) !== -1)) {
-        return operators.disjunction;
-    }
-    else if (checkConditional && (conditionalCodes.indexOf(code) !== -1)) {
-        return operators.conditional;
-    }
-    return null;
 }
 
 /// Finds whether the given string starting at the given index matches the search term or not.

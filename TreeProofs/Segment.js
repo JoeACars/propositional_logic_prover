@@ -1,6 +1,7 @@
 "use strict";
 
 import Line from "./Line.js";
+import displayConstants from "../Display/DisplayConstants.js";
 
 const endOpen = "open";
 const endClose = "close";
@@ -21,8 +22,16 @@ export default class Segment {
         return this._lines.includes(line);
     }
 
-    getLength() {
+    getOwnLength() {
         return this._lines.length;
+    }
+
+    getLength() {
+        let length = this.getOwnLength();
+        if (this.isEndSplit()) {
+            this._children.forEach(child => length += child.getLength());
+        }
+        return length;
     }
 
     isFinished() {
@@ -128,7 +137,7 @@ export default class Segment {
                 child._calculateMinDisplayWidth();
                 splitMinWidth += child.getMinDisplayWidth();
             });
-            splitMinWidth += paddingBetweenBranches * (this._children.length - 1);
+            splitMinWidth += displayConstants.paddingBetweenBranches * (this._children.length - 1);
         }
 
         this._minDisplayWidth = Math.max(thisMaxMinWidth, splitMinWidth);

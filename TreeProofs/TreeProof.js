@@ -6,49 +6,55 @@ import Line from "./Line.js";
 /// The tree proof.
 export default class TreeProof {
 
-    static _rootSegment = null;
-    static _activeSegment = null;
-    static _isComplete = false;
+    constructor() {
+        this.clear();
+    }
 
-    static clear() {
+    clear() {
         this._rootSegment = null;
         this._activeSegment = null;
         this._isComplete = false;
     }
 
-    static isComplete() {
+    isComplete() {
         return this._isComplete;
     }
 
-    static isValid() {
+    isValid() {
         if (this._isComplete) {
             return this._rootSegment.isClosed();
         }
     }
 
-    static getUsableLines() {
+    getUsableLines() {
         return this._activeSegment.getUsableLines();
     }
 
-    static getActiveLines() {
+    getActiveLines() {
         return this._activeSegment.getActiveLines();
     }
 
-    static getDisplayWidth() {
+    getDisplayWidth() {
         if (!this._rootSegment) return 0;
         if (!this._isComplete) return NaN;
         return this._rootSegment.getMinDisplayWidth();
     }
 
-    static getLength() {
-        return Line.getMaxLineNumber();
+    getLength() {
+        return this._rootSegment ? this._rootSegment.getLength() : 0;
     }
 
-    static getRootSegment() {
+    getRootSegment() {
         return this._rootSegment;
     }
 
-    static addLine(line) {
+    addNewLine(lineContent, lineJustification) {
+        let line = new Line(this.getLength() + 1, lineContent, lineJustification);
+        this.addLine(line);
+        return line;
+    }
+
+    addLine(line) {
 
         if (this._isComplete) {
             console.log("Can't add premises - proof is complete!")
@@ -59,18 +65,16 @@ export default class TreeProof {
         if (!this._rootSegment) {
             this._rootSegment = new Segment();
             this._activeSegment = this._rootSegment;
-            this._rootSegment.addLine(line);
-            return;
         }
 
-        // Otherwise, extend the proof.
+        // Now we're definitely ready, extend the proof.
         this._activeSegment.addLine(line);
 
     }
 
     /// Ends the active segment with a split.
     /// Takes a list of arrays of lines, where each array of lines are the starting lines of each new segment.
-    static split(...splitLines) {
+    split(...splitLines) {
 
         if (this._isComplete) {
             console.log("Can't split - proof is complete!");
@@ -92,7 +96,7 @@ export default class TreeProof {
         this._activeSegment = childSegments[0];
     }
 
-    static _moveToNextSegment() {
+    _moveToNextSegment() {
         // Move up to the closest unfinished segment
         while (this._activeSegment.isFinished()) {
             this._activeSegment = this._activeSegment.getParent();
@@ -105,17 +109,17 @@ export default class TreeProof {
         this._activeSegment = this._activeSegment.getFirstUnfinishedChild();
     }
 
-    static closeActiveSegment() {
+    closeActiveSegment() {
         this._activeSegment.close();
         this._moveToNextSegment();
     }
 
-    static leaveActiveSegmentOpen() {
+    leaveActiveSegmentOpen() {
         this._activeSegment.leaveOpen();
         this._moveToNextSegment();
     }
 
-    static _lock() {
+    _lock() {
         this._isComplete = true;
     }
 }

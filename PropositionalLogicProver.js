@@ -10,12 +10,13 @@ import {
     onClickAddConclusion,
     onClickValidateArgument
 } from "./Input.js";
+export { insertExampleInput } from "./Input.js";
 
 const addPremiseButtonId = "addPremise";
 const addConclusionButtonId = "addConclusion";
 const validateArgumentButtonId = "validateArgument";
 
-export default function init() {
+export function init() {
     document.getElementById(addPremiseButtonId).addEventListener("click", onClickAddPremise);
     document.getElementById(addConclusionButtonId).addEventListener("click", onClickAddConclusion);
     document.getElementById(validateArgumentButtonId).addEventListener("click", onClickValidateArgument);

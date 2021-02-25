@@ -9,10 +9,7 @@
 import displayTreeProof from "./Display/DisplayTreeProof.js";
 import parseInput from "./ParseInput.js";
 import { proveClassicalPropositional } from "./Prove.js";
-
-const languageSelectId = "language";
-const premiseDivId = "premises";
-const conclusionDivId = "conclusions";
+import htmlElemIds from "./HTMLElemIds.js";
 
 let numPremises = 0;
 let numConclusions = 0;
@@ -39,7 +36,7 @@ export function onClickAddConclusion() {
 /// successful, generates a proof.
 export function onClickValidateArgument() {
 
-    let language = document.getElementById(languageSelectId).value;
+    let language = document.getElementById(htmlElemIds.languageSelect).value;
 
     // Retrieve premises and conclusions
 
@@ -69,18 +66,19 @@ export function onClickValidateArgument() {
         index++;
     }
 
+    let treeProof;
     if (language === languageClassical.id) {
-        proveClassicalPropositional(premises, conclusions);
+        treeProof = proveClassicalPropositional(premises, conclusions);
     }
 
     let offsetLeft = 20;
-    let offsetTop = 400;
-    displayTreeProof(offsetLeft, offsetTop);
+    let offsetTop = 450;
+    displayTreeProof(treeProof, offsetLeft, offsetTop);
 }
 
 /// Adds the options for the implemented languages to the user's dropdown.
 export function addLanguageOptions() {
-    let dropdown = document.getElementById(languageSelectId);
+    let dropdown = document.getElementById(htmlElemIds.languageSelect);
     for (let language of languages) {
         let option = document.createElement("option");
         option.value = language.id;
@@ -129,7 +127,7 @@ export function onRemoveClick(event) {
     }
 
     let item = document.getElementById(getItemId(isPremise, numberOfItemClicked));
-    document.getElementById(isPremise ? premiseDivId : conclusionDivId).removeChild(item);
+    document.getElementById(isPremise ? htmlElemIds.premiseDiv : htmlElemIds.conclusionDiv).removeChild(item);
 
     let maxItemIndex;
     if (isPremise) {
@@ -224,10 +222,10 @@ export function addInputItem(isPremise) {
     item.appendChild(br1);
     item.appendChild(br2);
     if (isPremise) {
-        document.getElementById(premiseDivId).appendChild(item);
+        document.getElementById(htmlElemIds.premiseDiv).appendChild(item);
     }
     else {
-        document.getElementById(conclusionDivId).appendChild(item);
+        document.getElementById(htmlElemIds.conclusionDiv).appendChild(item);
     }
 }
 
@@ -336,7 +334,7 @@ function enableArrow(arrowElement, up) {
     arrowElement.addEventListener("click", up ? onArrowClickUp : onArrowClickDown);
 }
 
-/*function insertExampleInput() {
+export function insertExampleInput() {
     addInputItem(true);
     addInputItem(true);
     addInputItem(true);
@@ -349,4 +347,4 @@ function enableArrow(arrowElement, up) {
     document.getElementById(getInputId(false, 1)).value = "not (r and not r) to (not p to p)";
     document.getElementById(getInputId(false, 2)).value = "p to ((q and not q) to p)";
     document.getElementById(getInputId(false, 3)).value = "not not not (s to not t)";
-}*/
+}
