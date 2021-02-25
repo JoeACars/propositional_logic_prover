@@ -9,6 +9,7 @@
 import displayTreeProof from "../Display/DisplayTreeProof.js";
 import parseInput from "../Input/ParseInput.js";
 import proveClassicalPropositional from "../Prove/ProveClassicalPropositional.js";
+import proveFDE from "../Prove/ProveFDE.js";
 import htmlElemIds from "./HTMLElemIds.js";
 
 let numPremises = 0;
@@ -21,6 +22,7 @@ function Language(id, disp) {
     languages.push(this);
 }
 const languageClassical = new Language("classical", "Classical Propositional Logic");
+const languageFDE = new Language("fde", "First-Degree Entailment");
 const languageDefault = languageClassical;
 
 export function onClickAddPremise() {
@@ -69,6 +71,12 @@ export function onClickValidateArgument() {
     let treeProof;
     if (language === languageClassical.id) {
         treeProof = proveClassicalPropositional(premises, conclusions);
+    }
+    else if (language === languageFDE.id) {
+        treeProof = proveFDE(premises, conclusions);
+    }
+    else {
+        throw new Error("Selected language <" + String(language) + "> is not implemented.");
     }
 
     let offsetLeft = 20;
