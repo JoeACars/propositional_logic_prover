@@ -12,7 +12,7 @@ import justifications from "../TreeProofs/Justifications.js";
 import { LineContentSentence } from "../TreeProofs/LineContent.js";
 import Sentence from "../Syntax/Sentence.js";
 import operators from "../Syntax/Operators.js";
-import containsContradiction from "./ContainsContradiction.js";
+import containsSententialContradiction from "./ContainsSententialContradiction.js";
 
 export default function proveClassicalPropositional(premises, conclusions) {
 
@@ -29,13 +29,7 @@ export default function proveClassicalPropositional(premises, conclusions) {
     while (!treeProof.isComplete()) {
 
         // If we have a contradiction, close the active segment
-        let activeSentences = [];
-        for (let line of treeProof.getActiveLines()) {
-            if (line.getLineContent() instanceof LineContentSentence) {
-                activeSentences.push(line.getLineContent().getSentence());
-            }
-        }
-        if (containsContradiction(activeSentences)) {
+        if (containsSententialContradiction(treeProof.getActiveLines())) {
             treeProof.closeActiveSegment();
             continue;
         }

@@ -49,6 +49,33 @@ class TruthValueMarker {
     isNotFalse() {
         return this._code === codeNotFalse;
     }
+
+    isTruthy() {
+        return this.isTrue() || this.isNotFalse();
+    }
+    isFalsy() {
+        return this.isFalse() || this.isNotTrue();
+    }
+
+    contradicts(other) {
+        if (!(other instanceof TruthValueMarker)) {
+            return false;
+        }
+        if (this.isTrue()) {
+            return other.isNotTrue();
+        }
+        if (this.isFalse()) {
+            return other.isNotFalse();
+        }
+        if (this.isNotTrue()) {
+            return other.isTrue();
+        }
+        if (this.isNotFalse()) {
+            return other.isFalse();
+        }
+        return false;
+    }
+
     getDisplayString() {
         return this._disp;
     }
