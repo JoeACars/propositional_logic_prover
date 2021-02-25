@@ -8,7 +8,7 @@
 
 import displayTreeProof from "../Display/DisplayTreeProof.js";
 import parseInput from "../Input/ParseInput.js";
-import { proveClassicalPropositional } from "../Prove.js";
+import proveClassicalPropositional from "../Prove/ProveClassicalPropositional.js";
 import htmlElemIds from "./HTMLElemIds.js";
 
 let numPremises = 0;

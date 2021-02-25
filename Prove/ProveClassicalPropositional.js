@@ -6,14 +6,15 @@
 
 "use strict";
 
-import TreeProof from "./TreeProofs/TreeProof.js";
-import Line from "./TreeProofs/Line.js";
-import justifications from "./TreeProofs/Justifications.js";
-import { LineContentSentence } from "./TreeProofs/LineContent.js";
-import Sentence from "./Syntax/Sentence.js";
-import operators from "./Syntax/Operators.js";
+import TreeProof from "../TreeProofs/TreeProof.js";
+import Line from "../TreeProofs/Line.js";
+import justifications from "../TreeProofs/Justifications.js";
+import { LineContentSentence } from "../TreeProofs/LineContent.js";
+import Sentence from "../Syntax/Sentence.js";
+import operators from "../Syntax/Operators.js";
+import containsContradiction from "./ContainsContradiction.js";
 
-export function proveClassicalPropositional(premises, conclusions) {
+export default function proveClassicalPropositional(premises, conclusions) {
 
     let treeProof = new TreeProof();
 
@@ -150,74 +151,4 @@ export function proveClassicalPropositional(premises, conclusions) {
     
     return treeProof;
 
-}
-
-function containsContradiction(sentences) {
-    for (let sentence of sentences) {
-        if (sentence.getOperator().isEqual(operators.negation)) {
-            if (sentences.some(otherSentence => otherSentence.isEqual(sentence.getOperand(0)))) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-export function randomProof(sentences) {
-
-    let lineContents = sentences.map(sentence => new LineContentSentence(sentence));
-    let lines = [];
-    let treeProof = new TreeProof();
-
-    // Generate a random proof (for testing purposes)
-
-    function shouldWeSplit() {
-        return Math.random() <= 1 / (1 + Math.sqrt(treeProof.getLength()));
-    }
-
-    function shouldWeClose() {
-        return Math.random() >= 1 / (Math.sqrt(treeProof.getLength()));
-    }
-
-    function pickRandomItem(list) {
-        return list[Math.floor(Math.random() * list.length)];
-    }
-
-    function pickRandomJustification() {
-        let justification = pickRandomItem(Object.values(justifications));
-        return new justification(pickRandomItem(lines));
-    }
-
-    lines.push(treeProof.addNewLine(pickRandomItem(lineContents), new justifications.Premise()));
-    while (!treeProof.isComplete()) {
-
-        if (treeProof.getLength() > 100) {
-            while (!treeProof.isComplete()) {
-                console.log("closing segment");
-                treeProof.closeActiveSegment();
-            }
-            continue;
-        }
-
-        if (shouldWeClose()) {
-            console.log("closing segment");
-            treeProof.closeActiveSegment();
-            continue;
-        }
-
-        if (shouldWeSplit()) {
-            let leftLine = treeProof.addNewLine(pickRandomItem(lineContents), pickRandomJustification());
-            lines.push(leftLine);
-            let rightLine = treeProof.addNewLine(pickRandomItem(lineContents), pickRandomJustification());
-            lines.push(rightLine);
-            treeProof.split([leftLine], [rightLine]);
-            continue;
-        }
-
-        let line = treeProof.addNewLine(pickRandomItem(lineContents), pickRandomJustification());
-        console.log(line.getDisplayString());
-        lines.push(line);
-    }
-
-    return treeProof;
 }
