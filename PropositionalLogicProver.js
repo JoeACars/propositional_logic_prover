@@ -9,8 +9,8 @@ import {
     onClickAddPremise,
     onClickAddConclusion,
     onClickValidateArgument
-} from "./Input.js";
-export { insertExampleInput } from "./Input.js";
+} from "./Input/Input.js";
+export { insertExampleInput } from "./Input/Input.js";
 
 const addPremiseButtonId = "addPremise";
 const addConclusionButtonId = "addConclusion";

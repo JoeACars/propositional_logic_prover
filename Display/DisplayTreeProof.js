@@ -11,7 +11,7 @@ import measureWidthInProof from "./MeasureWidthInProof.js";
 import TreeProof from "../TreeProofs/TreeProof.js";
 import Segment from "../TreeProofs/Segment.js";
 import displayConstants from "../Display/DisplayConstants.js";
-import htmlElemIds from "../HTMLElemIds.js";
+import htmlElemIds from "../Input/HTMLElemIds.js";
 
 export default function displayTreeProof(treeProof, offsetLeft = 10, offsetTop = 500) {
 

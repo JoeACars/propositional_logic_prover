@@ -6,9 +6,9 @@
 
 "use strict";
 
-import displayTreeProof from "./Display/DisplayTreeProof.js";
-import parseInput from "./ParseInput.js";
-import { proveClassicalPropositional } from "./Prove.js";
+import displayTreeProof from "../Display/DisplayTreeProof.js";
+import parseInput from "../ParseInput.js";
+import { proveClassicalPropositional } from "../Prove.js";
 import htmlElemIds from "./HTMLElemIds.js";
 
 let numPremises = 0;
