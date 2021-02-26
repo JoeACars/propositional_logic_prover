@@ -1,6 +1,6 @@
 "use strict";
 
-const imgOffsetTop = 5.5;
+const imgOffsetTop = 2;
 const imgHeight = 11;
 const codeTrue = "t";
 const codeFalse = "f";
@@ -30,11 +30,11 @@ class TruthValueMarker {
         else if (code === codeNotFalse) {
             imgSrc = "truthmarkernotfalse.png"
         }
-        this._disp = "<img style=\"position: relative; "
+        this._disp = " <img style=\"position: relative; "
                         + "top: " + String(imgOffsetTop) + "px\" "
                         + "height = \"" + String(imgHeight) + "\" "
                         + "width = \"" + String(imgHeight) + "\" "
-                        + "src = \"" + imgSrc + "\" />";
+                        + "src = \"" + imgSrc + "\" /> ";
     }
 
     isTrue() {
@@ -74,6 +74,21 @@ class TruthValueMarker {
             return other.isFalse();
         }
         return false;
+    }
+
+    flipTruthiness() {
+        if (this.isTrue()) {
+            return truthValueMarkers.isFalse;
+        }
+        if (this.isFalse()) {
+            return truthValueMarkers.isTrue;
+        }
+        if (this.isNotTrue()) {
+            return truthValueMarkers.isNotFalse;
+        }
+        if (this.isNotFalse()) {
+            return truthValueMarkers.isNotTrue;
+        }
     }
 
     getDisplayString() {

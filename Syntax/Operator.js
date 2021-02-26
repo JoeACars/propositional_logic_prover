@@ -9,7 +9,7 @@ export default class Operator {
         // Check id is unique
         id = String(id);
         if (Operator._idsTaken.includes(id)) {
-            alert("Error! Tried to re-use an operator id.");
+            throw new Error("Tried to re-use an operator id.");
             return;
         }
 

@@ -72,22 +72,39 @@ export default class TreeProof {
 
     }
 
+    /// Ends the active segment with a split, and creates new Lines with the appropriate line numbers.
+    /// Takes a 3D array - the first dimension is for each new segment, the second is for each line
+    /// on any one branch, and the third is a pair [lineContent, justification].
+    splitWithNewLines(...newLinesBySegment) {
+        let lineNumber = this.getLength() + 1;
+        let linesBySegment = newLinesBySegment.map(segmentNewLines => {
+            return segmentNewLines.map(segmentNewLine => {
+                let [lineContent, justification] = segmentNewLine;
+                return new Line(lineNumber++, lineContent, justification);
+            })
+        });
+        this.split(...linesBySegment);
+        let lines = [];
+        linesBySegment.forEach(segmentLines => lines.push(segmentLines));
+        return lines;
+    }
+
     /// Ends the active segment with a split.
     /// Takes a list of arrays of lines, where each array of lines are the starting lines of each new segment.
-    split(...splitLines) {
+    split(...linesBySegment) {
 
         if (this._isComplete) {
             console.log("Can't split - proof is complete!");
             return;
         }
 
-        if (!splitLines) {
+        if (!linesBySegment) {
             console.log("Couldn't split proof - no lines provided!");
             return;
         }
 
         let childSegments = [];
-        for (let lines of splitLines) {
+        for (let lines of linesBySegment) {
             let segment = new Segment(this._activeSegment);
             lines.forEach(line => segment.addLine(line));
             childSegments.push(segment);

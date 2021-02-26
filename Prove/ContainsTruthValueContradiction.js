@@ -1,6 +1,9 @@
 "use strict";
 
-export default containsTruthValueContradiction(lines) {
+import { LineContentSentence } from "../TreeProofs/LineContent.js";
+import operators from "../Syntax/Operators.js";
+
+export default function containsTruthValueContradiction(lines) {
 
     // Retrieve sentential line contents
     let contents = [];
@@ -13,10 +16,8 @@ export default containsTruthValueContradiction(lines) {
 
     // Find truth value contradictions
     for (let content of contents) {
-            if (content.getSentence().getOperator().isEqual(operators.negation)) {
-                if (contents.some(otherContent => areContentsTruthValueContradictory(content, otherContent))) {
-                    return true;
-                }
+            if (contents.some(otherContent => areContentsTruthValueContradictory(content, otherContent))) {
+                return true;
             }
     }
     return false;

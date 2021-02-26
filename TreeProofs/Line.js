@@ -4,6 +4,7 @@ import { isLineContent } from "./LineContent.js";
 import justifications from "./Justifications.js";
 import measureWidthInProof from "../Display/MeasureWidthInProof.js";
 import operators from "../Syntax/Operators.js";
+import languages from "../Languages.js";
 
 /// A line in the proof.
 /// Contains the line number, line content and justification and can find out whether it is usable or not.
@@ -75,8 +76,7 @@ export default class Line {
 
     /// If true, this line is currently available to be used in the proof. If false, this line
     /// has contributed all it can to the proof for now.
-    isUsable() {
-        console.log("Line.isUsed() is only written for non-modal semantics. Just warning you!");
+    isUsable(language) {
         let sentence = this._content?.getSentence();
         // Unused?
         if (this._lineLastUsed === null || !sentence) {
@@ -87,7 +87,7 @@ export default class Line {
             return true;
         }
         // Negated sentence-letter?
-        if (sentence.getOperator().isEqual(operators.negation) && operators.trivialOperator.isEqual(sentence.getOperand(0).getOperator())) {
+        if (language === languages.classical && sentence.getOperator().isEqual(operators.negation) && operators.trivialOperator.isEqual(sentence.getOperand(0).getOperator())) {
             return true;
         }
         return false;

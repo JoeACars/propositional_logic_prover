@@ -11,19 +11,10 @@ import parseInput from "../Input/ParseInput.js";
 import proveClassicalPropositional from "../Prove/ProveClassicalPropositional.js";
 import proveFDE from "../Prove/ProveFDE.js";
 import htmlElemIds from "./HTMLElemIds.js";
+import languages from "../Languages.js";
 
 let numPremises = 0;
 let numConclusions = 0;
-
-let languages = [];
-function Language(id, disp) {
-    this.id = id;
-    this.disp = disp;
-    languages.push(this);
-}
-const languageClassical = new Language("classical", "Classical Propositional Logic");
-const languageFDE = new Language("fde", "First-Degree Entailment");
-const languageDefault = languageClassical;
 
 export function onClickAddPremise() {
     addInputItem(true);
@@ -48,7 +39,7 @@ export function onClickValidateArgument() {
         premiseInput = document.getElementById(getInputId(true, index))) {
         let premise = parseInput(premiseInput.value);
         if (premise === null) {
-            alert("Error! Invalid premise input.");
+            throw new Error("Invalid premise input.");
             return;
         }
         premises.push(premise);
@@ -61,7 +52,7 @@ export function onClickValidateArgument() {
         conclusionInput = document.getElementById(getInputId(false, index))) {
         let conclusion = parseInput(conclusionInput.value);
         if (conclusion === null) {
-            alert("Error! Invalid conclusion input.");
+            throw new Error("Invalid conclusion input.");
             return;
         }
         conclusions.push(conclusion);
@@ -69,10 +60,10 @@ export function onClickValidateArgument() {
     }
 
     let treeProof;
-    if (language === languageClassical.id) {
+    if (language === languages.classical.id) {
         treeProof = proveClassicalPropositional(premises, conclusions);
     }
-    else if (language === languageFDE.id) {
+    else if (language === languages.FDE.id) {
         treeProof = proveFDE(premises, conclusions);
     }
     else {
@@ -80,18 +71,18 @@ export function onClickValidateArgument() {
     }
 
     let offsetLeft = 20;
-    let offsetTop = 450;
+    let offsetTop = document.getElementById(htmlElemIds.validateArgumentButtonId).getBoundingClientRect().bottom + 40;
     displayTreeProof(treeProof, offsetLeft, offsetTop);
 }
 
 /// Adds the options for the implemented languages to the user's dropdown.
 export function addLanguageOptions() {
     let dropdown = document.getElementById(htmlElemIds.languageSelect);
-    for (let language of languages) {
+    for (let language of Object.values(languages)) {
         let option = document.createElement("option");
         option.value = language.id;
         option.innerHTML = language.disp;
-        if (language === languageDefault) {
+        if (language === languages.default) {
             option.selected = true;
         }
         dropdown.appendChild(option);
@@ -130,7 +121,7 @@ export function onRemoveClick(event) {
     let numberOfItemClicked = getNumberFromEnd(removeElementId);
     let isPremise = removeElementId.endsWith(getPremiseId(numberOfItemClicked));
     if (!isPremise && !removeElementId.endsWith(getConclusionId(numberOfItemClicked))) {
-        window.alert("Error - Invalid call from a remove button!");
+        throw new Error("Invalid call from a remove button!");
         return;
     }
 

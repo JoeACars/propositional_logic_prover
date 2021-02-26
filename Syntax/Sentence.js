@@ -8,7 +8,7 @@ export default class Sentence {
     constructor(operator, ...args) {
 
         if (!(operator instanceof Operator)) {
-            alert("Error - didn't provide Sentence constructor with an operator!");
+            throw new Error("Didn't provide Sentence constructor with an operator.");
             return;
         }
 
@@ -18,7 +18,7 @@ export default class Sentence {
         }
 
         if (args.some(arg => !(arg instanceof Sentence) && !sentenceLetters.includes(arg))) {
-            alert("Error - provided Sentence constructor with invalid argument.");
+            throw new Error("Provided Sentence constructor with invalid argument.");
             return;
         }
 

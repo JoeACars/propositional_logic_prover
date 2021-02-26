@@ -7,12 +7,13 @@
 "use strict";
 
 import TreeProof from "../TreeProofs/TreeProof.js";
-import Line from "../TreeProofs/Line.js";
 import justifications from "../TreeProofs/Justifications.js";
 import { LineContentSentence } from "../TreeProofs/LineContent.js";
 import Sentence from "../Syntax/Sentence.js";
 import operators from "../Syntax/Operators.js";
 import containsSententialContradiction from "./ContainsSententialContradiction.js";
+
+const binaryOperators = [operators.conjunction, operators.disjunction, operators.conditional];
 
 export default function proveClassicalPropositional(premises, conclusions) {
 
@@ -49,32 +50,8 @@ export default function proveClassicalPropositional(premises, conclusions) {
             }
             let sentence = content.getSentence();
 
-            // Conjunction?
-            if (sentence.getOperator().isEqual(operators.conjunction)) {
-                let left = treeProof.addNewLine(new LineContentSentence(sentence.getOperand(0)), new justifications.ExpandConj(line));
-                let right = treeProof.addNewLine(new LineContentSentence(sentence.getOperand(1)), new justifications.ExpandConj(line));
-                line.setUsed(left);
-                line.setUsed(right);
-                appliedRule = true;
-                continue;
-            }
-
-            // Negated disjunction?
-            if (sentence.getOperator().isEqual(operators.negation) && sentence.getOperand(0).getOperator().isEqual(operators.disjunction)) {
-                let left = treeProof.addNewLine(new LineContentSentence(new Sentence(operators.negation, sentence.getOperand(0).getOperand(0))), new justifications.ExpandDisj(line));
-                let right = treeProof.addNewLine(new LineContentSentence(new Sentence(operators.negation, sentence.getOperand(0).getOperand(1))), new justifications.ExpandDisj(line));
-                line.setUsed(left);
-                line.setUsed(right);
-                appliedRule = true;
-                continue;
-            }
-
-            // Negated conditional?
-            if (sentence.getOperator().isEqual(operators.negation) && operators.conditional.isEqual(sentence.getOperand(0).getOperator())) {
-                let left = treeProof.addNewLine(new LineContentSentence(sentence.getOperand(0).getOperand(0)), new justifications.ExpandCond(line));
-                let right = treeProof.addNewLine(new LineContentSentence(new Sentence(operators.negation, sentence.getOperand(0).getOperand(1))), new justifications.ExpandCond(line));
-                line.setUsed(left);
-                line.setUsed(right);
+            // Expansion rules?
+            if (tryExpansion(treeProof, line)) {
                 appliedRule = true;
                 continue;
             }
@@ -100,37 +77,8 @@ export default function proveClassicalPropositional(premises, conclusions) {
             if (!(content instanceof LineContentSentence)) {
                 continue;
             }
-            let sentence = content.getSentence();
 
-            // Conditional?
-            if (sentence.getOperator().isEqual(operators.conditional)) {
-                let left = new Line(treeProof.getLength() + 1, new LineContentSentence(new Sentence(operators.negation, sentence.getOperand(0))), new justifications.SplitCond(line));
-                let right = new Line(treeProof.getLength() + 1, new LineContentSentence(sentence.getOperand(1)), new justifications.SplitCond(line));
-                treeProof.split([left], [right]);
-                line.setUsed(left);
-                line.setUsed(right);
-                appliedRule = true;
-                break;
-            }
-
-            // Disjunction?
-            if (sentence.getOperator().isEqual(operators.disjunction)) {
-                let left = new Line(treeProof.getLength() + 1, new LineContentSentence(sentence.getOperand(0)), new justifications.SplitDisj(line));
-                let right = new Line(treeProof.getLength() + 1, new LineContentSentence(sentence.getOperand(1)), new justifications.SplitDisj(line));
-                treeProof.split([left], [right]);
-                line.setUsed(left);
-                line.setUsed(right);
-                appliedRule = true;
-                break;
-            }
-
-            // Negated conjunction?
-            if (sentence.getOperator().isEqual(operators.negation) && operators.conjunction.isEqual(sentence.getOperand(0).getOperator())) {
-                let left = new Line(treeProof.getLength() + 1, new LineContentSentence(new Sentence(operators.negation, sentence.getOperand(0).getOperand(0))), new justifications.SplitConj(line));
-                let right = new Line(treeProof.getLength() + 1, new LineContentSentence(new Sentence(operators.negation, sentence.getOperand(0).getOperand(1))), new justifications.SplitConj(line));
-                treeProof.split([left], [right]);
-                line.setUsed(left);
-                line.setUsed(right);
+            if (trySplit(treeProof, line)) {
                 appliedRule = true;
                 break;
             }
@@ -145,4 +93,144 @@ export default function proveClassicalPropositional(premises, conclusions) {
     
     return treeProof;
 
+}
+
+function tryExpansion(treeProof, line) {
+    for (let operator of binaryOperators) {
+        if (tryExpansionWithOp(treeProof, line, operator)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function tryExpansionWithOp(treeProof, line, operator) {
+
+    let sentence = line.getLineContent().getSentence();
+
+
+    // Does this sentence have to be negated or not for an expansion rule to apply?
+    let negated = !operator.isEqual(operators.conjunction);
+    let leftNegated = false;
+    let rightNegated = false;
+    
+    // Is this sentence the right structure for an expansion rule?
+    // If so, should the expanded lines be negated?
+    if (negated) {
+        // Have we got the right structure?
+        if (!sentence.getOperand(0).getOperator().isEqual(operator)) {
+            return false;
+        }
+        // Negated disjunction?
+        if (operator.isEqual(operators.disjunction)) {
+            leftNegated = true;
+            rightNegated = true;
+        }
+        // Negated conditional?
+        else if (operator.isEqual(operators.conditional)) {
+            leftNegated = false;
+            rightNegated = true;
+        }
+        else {
+            throw new Error("Logic error in tryExpansionWithOp()");
+        }
+    }
+    else {
+        // Have we got the right structure?
+        if (!sentence.getOperator().isEqual(operator)) {
+            return false;
+        }
+        // Conjunction
+        if (operator.isEqual(operators.conjunction)) {
+            leftNegated = false;
+            rightNegated = false;
+        }
+        else {
+            throw new Error("Logic error in tryExpansionWithOp()");
+        }
+    }
+
+    let Justification = justifications.getExpansion(operator);
+
+    let unnegatedSentence = negated ? sentence.getOperand(0) : sentence;
+    let left = treeProof.addNewLine(
+        new LineContentSentence(leftNegated ? new Sentence(operators.negation, unnegatedSentence.getOperand(0)) : unnegatedSentence.getOperand(0)),
+        new Justification(line));
+    let right = treeProof.addNewLine(
+        new LineContentSentence(rightNegated ? new Sentence(operators.negation, unnegatedSentence.getOperand(1)) : unnegatedSentence.getOperand(1)),
+        new Justification(line));
+    line.setUsed(left);
+    line.setUsed(right);
+
+    return true;
+}
+
+function trySplit(treeProof, line) {
+    for (let operator of binaryOperators) {
+        if (trySplitWithOp(treeProof, line, operator)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function trySplitWithOp(treeProof, line, operator) {
+
+    let sentence = line.getLineContent().getSentence();
+
+
+    // Does this sentence have to be negated or not for a splitting rule to apply?
+    let negated = operator.isEqual(operators.conjunction);
+    let leftNegated = false;
+    let rightNegated = false;
+    
+    // Is this sentence the right structure for an expansion rule?
+    // If so, should the expanded lines be negated?
+    if (negated) {
+        // Have we got the right structure?
+        if (!sentence.getOperand(0).getOperator().isEqual(operator)) {
+            return false;
+        }
+        // Negated conjunction
+        if (operator.isEqual(operators.conjunction)) {
+            leftNegated = true;
+            rightNegated = true;
+        }
+        else {
+            throw new Error("Logic error in tryExpansionWithOp()");
+        }
+    }
+    else {
+        // Have we got the right structure?
+        if (!sentence.getOperator().isEqual(operator)) {
+            return false;
+        }
+        // Disjunction?
+        if (operator.isEqual(operators.disjunction)) {
+            leftNegated = false;
+            rightNegated = false;
+        }
+        // Conditional?
+        else if (operator.isEqual(operators.conditional)) {
+            leftNegated = true;
+            rightNegated = false;
+        }
+        else {
+            throw new Error("Logic error in tryExpansionWithOp()");
+        }
+    }
+
+    let Justification = justifications.getSplit(operator);
+
+    let unnegatedSentence = negated ? sentence.getOperand(0) : sentence;
+    let [[left], [right]] = treeProof.splitWithNewLines(
+        [ [ new LineContentSentence(leftNegated ? new Sentence(operators.negation, unnegatedSentence.getOperand(0)) : unnegatedSentence.getOperand(0)),
+        new Justification(line) ] ],
+        [ [ new LineContentSentence(rightNegated ? new Sentence(operators.negation, unnegatedSentence.getOperand(1)) : unnegatedSentence.getOperand(1)),
+        new Justification(line) ] ]
+    );
+    line.setUsed(left);
+    line.setUsed(right);
+
+    return true;
 }

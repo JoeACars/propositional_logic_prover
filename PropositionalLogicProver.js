@@ -9,17 +9,14 @@ import {
     onClickAddPremise,
     onClickAddConclusion,
     onClickValidateArgument,
-    insertExampleInput
+    insertExampleInput,
 } from "./Input/Input.js";
-
-const addPremiseButtonId = "addPremise";
-const addConclusionButtonId = "addConclusion";
-const validateArgumentButtonId = "validateArgument";
+import htmlElemIds from "./Input/HTMLElemIds.js";
 
 function init() {
-    document.getElementById(addPremiseButtonId).addEventListener("click", onClickAddPremise);
-    document.getElementById(addConclusionButtonId).addEventListener("click", onClickAddConclusion);
-    document.getElementById(validateArgumentButtonId).addEventListener("click", onClickValidateArgument);
+    document.getElementById(htmlElemIds.addPremiseButtonId).addEventListener("click", onClickAddPremise);
+    document.getElementById(htmlElemIds.addConclusionButtonId).addEventListener("click", onClickAddConclusion);
+    document.getElementById(htmlElemIds.validateArgumentButtonId).addEventListener("click", onClickValidateArgument);
     addLanguageOptions();
 }
 
