@@ -34,7 +34,7 @@ But what is this a "set of conclusions", and what does that mean? In the above, 
 
 To get to multi-conclusion arguments, we just need to generalise: a multi-conclusion argument is valid if and only if whenever all the premises are true, *at least one* of the conclusions is true, too.
 
-That might sound weirdly symettrical. Why "all" the premises, but just "at least one" of the conclusions? Why not all the conclusions? Though you might not believe me just yet, trust me - this is definitely the most sensible way of doing it. Perhaps you'll see the rationale better if I express it another way: an argument is valid if and only if it is logically impossible for all the premises to be true and none of the conclusions to be true.
+That might sound weirdly un-symmetrical. Why "all" the premises, but just "at least one" of the conclusions? Why not all the conclusions? Though you might not believe me just yet, trust me - this is definitely the most sensible way of doing it. Perhaps you'll see the rationale better if I express it another way: an argument is valid if and only if it is logically impossible for all the premises to be true and none of the conclusions to be true.
 
 Most of the time, you won't have to worry about multi-conclusion arguments: they're much less common than single-conclusion arguments. However, they do come up. For example, in First-Degree Entailment, modus ponens
 
