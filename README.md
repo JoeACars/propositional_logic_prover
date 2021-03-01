@@ -6,18 +6,18 @@ Given a logic and a propositional argument, seeks to establish the validity of t
 
 ### What is a logic?
 
-Speaking roughly, a *logic* is a set of rules which determine whether a given set of premises entails a given set of conclusions. For example, a standard form of argument is called *modus ponens*: if it is true that sentence 1 implies sentence 2, and sentence 1 is true, then it follows that sentence 2 is true. We usually write "sentence 1", "sentence 2" and so on as "p", "q", "r" etc, and we usually write "if p then q" as "p → q". In addition to →, we also write p ∧ q for "p and q", p ∨ q for "p or q" and ¬p for "not p". We also can use the turnstile symbol, ⊢, for "entails", so we can write modus ponens as follows:
+Speaking roughly, a *logic* is a set of rules which determine whether a given set of premises entails a given set of conclusions. For example, a standard form of argument is called *modus ponens*: if it is true that sentence 1 implies sentence 2, and sentence 1 is true, then it follows that sentence 2 is true. We usually write "sentence 1", "sentence 2" and so on as <code>p,q,r,...</code>, and we usually write "if p then q" as <code>p → q</code>. In addition to <code>→</code>, we also write <code>p ∧ q</code> for "p and q", <code>p ∨ q</code> for "p or q" and <code>¬p</code> for "not p". We also can use the turnstile symbol, <code>⊢</code>, for "entails", so we can write modus ponens as follows:
 
     p → q, p ⊢ q
 
-In formal logic, a set of premises e.g. { p → q, p } together with a set of conclusions e.g. { q } is called an "argument". A statement like the above with a turnstile in it is called a "validity statement", and says that the argument from { p → q, p } to { q } is "valid". To say that an argument is valid roughly means that it's logically impossible for all the premises to be true and all the conclusions to be false. To get you more of a flavour, here are a few more arguments that are valid in Classical Propositional Logic:
+In formal logic, a set of premises e.g. <code>{ p → q, p }</code> together with a set of conclusions e.g. <code>{ q }</code> is called an "argument". A statement like the above with a turnstile in it is called a "validity statement", and says that the argument from <code>{ p → q, p }</code> to <code>{ q }</code> is "valid". To say that an argument is valid roughly means that it's logically impossible for all the premises to be true and all the conclusions to be false. To get you more of a flavour, here are a few more arguments that are valid in Classical Propositional Logic:
 
            p ∧ q ⊢ p     (simplification)
              ¬¬p ⊢ p     (double negation elimination)
        p → q, ¬q ⊢ ¬p    (modus tollens)
     ¬(p ∨ q), ¬q ⊢ p     (modus tollendo ponens)
 
-In other places, you will see variations on this, but this is probably the most common notation, and we'll adopt it consistently here. We should also note that the arrow is sometimes called the "conditional", ∧ is called "conjunction", ∨ is called "disjunction" and ¬ is called "negation".
+In other places, you will see variations on this, but this is probably the most common notation, and we'll adopt it consistently here. We should also note that the arrow is sometimes called the "conditional operator", <code>∧</code> is called "conjunction", <code>∨</code> is called "disjunction" and <code>¬</code> is called "negation".
 
 ### Theorems
 
@@ -26,7 +26,7 @@ An argument with no premises and a single conclusion is called a "theorem" (also
     ⊢ p ∨ ¬p       (LEM)
     ⊢ ¬(p ∧ ¬p)    (LNC)
 
-These validity-statements roughly say that LEM and LNC are *always true*, no matter what. We don't need to assume any premises to know that either p is true or p is false, or that p isn't both true and false.
+These validity-statements roughly say that LEM and LNC are *always true*, no matter what. We don't need to assume any premises to know that either <code>p</code> is true or <code>p</code> is false, or that <code>p</code> isn't both true and false.
 
 ### Sets of conclusions
 
@@ -44,7 +44,7 @@ is invalid. However, something close to it is valid:
 
     p, p → q ⊢ q, p ∧ ¬p
 
-This is a multi-conclusion argument: what it says is that if p and p → q are true, then either q is true or p ∧ ¬p is true. (And if you're wondering - yes, in First-Degree Entailment, p can be both true and false! We'll get to that later.)
+This is a multi-conclusion argument: what it says is that if <code>p</code> and <code>p → q</code> are true, then either <code>q</code> is true or <code>p ∧ ¬p</code> is true. (And if you're wondering - yes, in First-Degree Entailment, <code>p</code> can be both true and false! We'll get to that later.)
 
 ## How do you prove things?
 
@@ -61,13 +61,13 @@ We said that tree proofs involve branching. That's because some operators don't 
 Once you've split, you work on one branch at a time, typically from left-to-right. You can call the branch you're working on as the "active" branch. From a child branch, you can still use lines from the parent branch to continue expanding your proof. (Try this out with the premises p ∨ q and q ∨ r.) You can't use lines from your sibling branches, however. Child branches represent "more specific" logical possibilities, whereas sibling branches represent "alternative" logical possibilities.
 
 In Classical Propositional Logic, every sentence except atomic sentences and negated atomic sentences can be expanded in some way. You can try this out by just typing in one premise, and going through all the different forms a sentence could take:
-* ¬¬p
-* p → q
-* p ∧ q
-* p ∨ q
-* ¬(p → q)
-* ¬(p ∧ q)
-* ¬(p ∨ q)
+* <code>¬¬p</code>
+* <code>p → q</code>
+* <code>p ∧ q</code>
+* <code>p ∨ q</code>
+* <code>¬(p → q)</code>
+* <code>¬(p ∧ q)</code>
+* <code>¬(p ∨ q)</code>
 
 So that's how you *flesh out the logical consequences*. Once you've "fleshed out the consequences" as much as you possibly can - once you've "used" every complex sentence until you're just left with (negated) atomic sentences - you take a look at the active branch. If, from the active branch or any of its parents, there is any line saying the sentence <code>¬A</code> with another line saying <code>A</code>, you have a "contradiction", and you "close the branch". You close the branch by putting an X at the bottom, and you move on to the next branch you haven't finished working on yet. (Or, if there are no other unfinished branches, your proof is complete!) If there aren't any contradictions, however, the argument must have been invalid: what we've done is found a logical possibility, a way things could have been, that makes the premises all true and the conclusions all false.
 
@@ -79,9 +79,9 @@ In paraconsistent logical systems like First-Degree Entailment, things work a li
 * <img src=".\Graphics\truthmarkerfalse.png" height="10px" width="10px"/> (false)
 * <img src=".\Graphics\truthmarkernotfalse.png" height="10px" width="10px"/> (not false)
 Instead of doing double-negation elimination, we do simply negation-elimination (try it out and see how it works!). Because we can eliminate negation, we no longer need rules for negated complex sentences:
-* ¬(p → q)
-* ¬(p ∧ q)
-* ¬(p ∨ q)
+* <code>¬(p → q)</code>
+* <code>¬(p ∧ q)</code>
+* <code>¬(p ∨ q)</code>
 However, we do need rules for all four truth-markers. I encourage you to try them all out and see how they work.
 
 Of course, since contradictions are considered "logically possible" in paraconsistent logics, we'll have to have a new criterion for when we're allowed to close a branch. That criterion is reasonably straightforward: if we have <img src=".\Graphics\truthmarkertrue.png" height="10px" width="10px"/> <code>A</code> on one line and <img src=".\Graphics\truthmarkernot.png" height="10px" width="10px"/> <code>A</code> on another, or <img src=".\Graphics\truthmarkerfalse.png" height="10px" width="10px"/> <code>A</code> on one line and <img src=".\Graphics\truthmarkernotfalse.png" height="10px" width="10px"/> <code>A</code> on another, we can close the branch.
