@@ -91,7 +91,7 @@ Instead of doing double-negation elimination, we do simply negation-elimination 
 
 However, we do need rules for all four truth-markers. I encourage you to try them all out and see how they work.
 
-Of course, since contradictions are considered "logically possible" in paraconsistent logics, we'll have to have a new criterion for when we're allowed to close a branch. That criterion is reasonably straightforward: if we have <code><img src=".\Graphics\truthmarkertrue.png" height="10px" width="10px"/> A</code> on one line and <code><img src=".\Graphics\truthmarkernot.png" height="10px" width="10px"/> A</code> on another, or <code><img src=".\Graphics\truthmarkerfalse.png" height="10px" width="10px"/> A</code> on one line and <code><img src=".\Graphics\truthmarkernotfalse.png" height="10px" width="10px"/> A</code> on another, we can close the branch.
+Of course, since contradictions are considered "logically possible" in paraconsistent logics, we'll have to have a new criterion for when we're allowed to close a branch. That criterion is reasonably straightforward: if we have <code><img src=".\Graphics\truthmarkertrue.png" height="10px" width="10px"/> A</code> on one line and <code><img src=".\Graphics\truthmarkernottrue.png" height="10px" width="10px"/> A</code> on another, or <code><img src=".\Graphics\truthmarkerfalse.png" height="10px" width="10px"/> A</code> on one line and <code><img src=".\Graphics\truthmarkernotfalse.png" height="10px" width="10px"/> A</code> on another, we can close the branch.
 
 ## How does it work?
 
@@ -99,21 +99,24 @@ The following sections are given in order of dependency. They are also the names
 
 ### Syntax
 
-First, <code>Operator.js</code> defines the <code>Operator</code> class. Each instance of <code>Operator</code> has its own unique string id, and an integer arity. Negation is a unary (arity 1) operator, for instance, while conjunction is a binary (arity 2) operator. (Although not implemented here, there are in some logics operators with different arities, including operators of arbitrary arity such as n-ary conjunction, or even the standard zeroary operators, verum and falsum.)
+First, <code>Operator.js</code> defines the <code>Operator</code> class. Each instance of <code>Operator</code> has its own unique string id, and an integer arity. Negation is a unary (arity 1) operator, for instance, while conjunction is a binary (arity 2) operator. (Although not implemented here, there are in some logics operators with other arities, including operators of arbitrary arity such as n-ary conjunction, or even the standard zeroary operators, verum and falsum.)
 
 Then, <code>Operators.js</code> defines the <code>operators</code> global constant object, storing instances of the <code>Operator</code> class corresponding to the usual operators: negation, conjunction, disjunction and conditionals. In addition to those, there is also the trivial operator, which essentially means "do nothing to the sentence". If this sounds redundant, read on...
 
 Finally, <code>Sentence.js</code> defines the <code>Sentence</code> class, representing a sentence in formal logic. A <code>Sentence</code> object is essentially just an <code>Operator</code> together with a list of operands. The idea is that you can start of with the atomic sentences, p, q, r etc, and combine them using operators to make ever more complex sentences. You can retrieve the Operator of a Sentence by calling <code>Sentence.getOperator()</code> and you can retrieve the n<sup>th</sup> operand of a Sentence with <code>Sentence.getOperand(n)</code>.
 
-But what are atomic sentences? Given they are just the basic p, q, r etc, surely they have neither an operator nor an operand, so surely they can't be implemented by <code>Sentence</code>? However, if we were to implement atomic sentences this way, we'd run into problems. To keep our code simple and error-resistant, we should insist on three things:
-* sentences, whether atomic or complex, should always be represented by a Sentence object,
+But how are atomic sentences represented? Given they are just the basic p, q, r etc, surely they have neither an operator nor an operand, so surely they can't be implemented by <code>Sentence</code>? However, if we were to implement atomic sentences this way, we'd run into problems. To keep our code simple and error-resistant, we should insist on three things:
+
+* sentences, whether atomic or complex, should always be represented by a <code>Sentence</code> object,
 * <code>Sentence.getOperator()</code> should always be defined and
 * <code>Sentence.getOperand(n)</code> should, if defined, always return another Sentence.
 
 The good news is, we tick all these boxes in the way we implement atomic sentences.
-* Atomic sentences are represented by Sentence objects (in particular, there's a fixed list of them, accessible by the static method <code>Sentence.getAtomicSentences()</code>). Complex Sentences are always constructed from these atomic Sentences by combining them with Operators.
+
+* Atomic sentences are represented by <code>Sentence objects</code> (in particular, there's a fixed list of them, accessible by the static method <code>Sentence.getAtomicSentences()</code>). Complex <code>Sentences</code> are always constructed from these atomic <code>Sentences</code> by combining them with <code>Operators</code>.
 * In the case of atomic sentences, <code>Sentence.getOperator()</code> returns the trivial operator.
 * In the case of atomic sentences, <code>Sentence.getOperator(0)</code> returns itself.
+
 The only potential problem these raises is that if you forget about the last bullet point, you could get stuck in an infinite loop, calling <code>getOperator(0)</code> forever and ever and getting nowhere. Thankfully, there's really only one time you need to get the "value" of an atomic sentence, and that's when you're displaying it. Check out <code>Sentence.getDisplayString()</code> to see how this is handled.
 
 ### TreeProofs
@@ -124,8 +127,12 @@ Why all the business with interfaces? Well, in some other (as-yet-unimplemented)
 
 Now that we have Lines, we move on to <code>Segment</code>. Picture a tree proof with lots of branches. A <code>Segment</code> represents a piece of a branch running from wherever it starts to wherever it splits (or ends). Each <code>Segment</code> knows who its parent is (if it has one) and who its children are (if it has any).
 
-Finally, right up at the top if the <code>TreeProof</code> itself. This object has a reference to its root segment (the one at the very top, with no parent) and, if we're actively working on the proof, to its active segment. This is where prover functions (see next section) interact with the proof, so it includes functions for appending lines to the active segment, ending the active segment and moving on to the next one and retrieving the lines that can be used in the active segment, among other things.
+Finally, right up at the top is the <code>TreeProof</code> object itself. This object has a reference to its root segment (the one at the very top, with no parent) and, if we're actively working on the proof, to its active segment. This is where prover functions (see next section) interact with the proof, so it includes functions for appending lines to the active segment, ending the active segment and moving on to the next one and retrieving the lines that can be used in the active segment, among other things.
 
 ### Prove
 
 This is where the prover functions live. There's one for Classical Propositional Logic, and one for First-Degree Entailment. There are also two functions for deciding whether or not to close a branch - for the former, we have <code>ContainsSententialContradiction()</code> for finding joint occurences of <code>A</code> and <code>¬A</code>. For the latter, we have <code>ContainsTruthValueContradiction()</code> for finding joint occurrences of <code>A</code> with incompatible truth-value markers.
+
+### Other bits
+
+There is a Graphics folder for all the graphics we need. The Input folder contains modules relating to user input, and Disply contains modules relating to displaying the proof. <code>Languages.js</code> contains a list of implemented logical systems or "languages", i.e. Classical Propositional Logic and First-Degree Entailment, and <code>PropositionalLogicProver.js</code> sets up the interface between the HTML page and the JavaScript modules.
