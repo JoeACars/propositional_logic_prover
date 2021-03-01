@@ -19,16 +19,16 @@ class TruthValueMarker {
 
         let imgSrc = "";
         if (code === codeTrue) {
-            imgSrc = "truthmarkertrue.png"
+            imgSrc = "/Graphics/truthmarkertrue.png"
         }
         else if (code === codeFalse) {
-            imgSrc = "truthmarkerfalse.png"
+            imgSrc = "/Graphics/truthmarkerfalse.png"
         }
         else if (code === codeNotTrue) {
-            imgSrc = "truthmarkernottrue.png"
+            imgSrc = "/Graphics/truthmarkernottrue.png"
         }
         else if (code === codeNotFalse) {
-            imgSrc = "truthmarkernotfalse.png"
+            imgSrc = "/Graphics/truthmarkernotfalse.png"
         }
         this._disp = " <img style=\"position: relative; "
                         + "top: " + String(imgOffsetTop) + "px\" "

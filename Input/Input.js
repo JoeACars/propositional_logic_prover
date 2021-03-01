@@ -268,6 +268,14 @@ function getInputId(isPremise, number) {
     return "input" + (isPremise ? getPremiseId(number) : getConclusionId(number));
 }
 
+function getArrowSrc(up, enabled) {
+    return "/Graphics/" + (up ? "up" : "down") + "arrow" + (enabled ? "en" : "dis") + "abled.png";
+}
+
+function getRemoveSrc() {
+    return "/Graphics/delete.png";
+}
+
 function getLabelValue(isPremise, number) {
     return (isPremise ? "Premise " : "Conclusion ") + String(number) + " :";
 }
@@ -276,7 +284,7 @@ function makeArrowButton(isPremise, up, number) {
     let arrow = document.createElement("img");
     let direction = up ? "Up" : "Down";
     arrow.setAttribute("id", getArrowId(isPremise, up, number));
-    arrow.setAttribute("src", direction.toLowerCase() + "arrow.png");
+    arrow.setAttribute("src", getArrowSrc(up, true));
     arrow.setAttribute("alt", "Move " + direction);
     arrow.setAttribute("title", "Move " + direction);
     arrow.setAttribute("height", "18");
@@ -288,7 +296,7 @@ function makeArrowButton(isPremise, up, number) {
 function makeRemoveButton(isPremise, number) {
     let remove = document.createElement("img");
     remove.setAttribute("id", getRemoveId(isPremise, number));
-    remove.setAttribute("src", "delete.png");
+    remove.setAttribute("src", getRemoveSrc());
     remove.setAttribute("alt", "Remove");
     remove.setAttribute("title", "Remove");
     remove.setAttribute("height", "18");
@@ -324,12 +332,12 @@ function getNumberFromEnd(str) {
 }
 
 function disableArrow(arrowElement, up) {
-    arrowElement.setAttribute("src", (up ? "up" : "down") + "arrowdisabled.png");
+    arrowElement.setAttribute("src", getArrowSrc(up, false));
     arrowElement.removeEventListener("click", up ? onArrowClickUp : onArrowClickDown);
 }
 
 function enableArrow(arrowElement, up) {
-    arrowElement.setAttribute("src", (up ? "up" : "down") + "arrow.png");
+    arrowElement.setAttribute("src", getArrowSrc(up, true));
     arrowElement.addEventListener("click", up ? onArrowClickUp : onArrowClickDown);
 }
 
