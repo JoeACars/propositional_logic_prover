@@ -4,6 +4,8 @@ Given a logic and a propositional argument, seeks to establish the validity of t
 
 ## What does it do?
 
+This is **not** a thorough introduction to formal logic. If you are new to formal logic, you will find the following pretty dense. I've done my best to explain things, but don't expect to understand everything, and in the interests of conciseness, I haven't told you everything you could possibly want to know. The aim of the following guide is to give you enough to go on that you can understand what my program does.
+
 ### What is a logic?
 
 Speaking roughly, a *logic* is a set of rules which determine whether a given set of premises entails a given set of conclusions. For example, a standard form of argument is called *modus ponens*: if it is true that sentence 1 implies sentence 2, and sentence 1 is true, then it follows that sentence 2 is true. We usually write "sentence 1", "sentence 2" and so on as <code>p,q,r,...</code>, and we usually write "if p then q" as <code>p → q</code>. In addition to <code>→</code>, we also write <code>p ∧ q</code> for "p and q", <code>p ∨ q</code> for "p or q" and <code>¬p</code> for "not p". We also can use the turnstile symbol, <code>⊢</code>, for "entails", so we can write modus ponens as follows:
@@ -58,9 +60,10 @@ Now, we take a look at what we've got. If on any line, we have a double negation
 
 We said that tree proofs involve branching. That's because some operators don't tell us anything certain about their operands, but they do restrict the possibilities. For example, if we have <code>A ∨ B</code>, we don't know anything about the truth of <code>A</code> nor of <code>B</code> on their own - but we do know that there are only two possibilities: either <code>A</code> is true, or <code>B</code> is true. (Of course, they could *both* be true - in formal logic, "or" is always inclusive, unless otherwise specified.) In a tree proof, we write this by *splitting* the proof into two branches. On the left branch, we append <code>A</code>, and on the right branch, we append <code>B</code>.
 
-Once you've split, you work on one branch at a time, typically from left-to-right. You can call the branch you're working on as the "active" branch. From a child branch, you can still use lines from the parent branch to continue expanding your proof. (Try this out with the premises p ∨ q and q ∨ r.) You can't use lines from your sibling branches, however. Child branches represent "more specific" logical possibilities, whereas sibling branches represent "alternative" logical possibilities.
+Once you've split, you work on one branch at a time, typically from left-to-right. You can call the branch you're working on the "active" branch. From a child branch, you can still use lines from the parent branch to continue expanding your proof. (Try this out with the premises <code>p ∨ q, q ∨ r</code>.) You can't use lines from your sibling branches, however. Child branches represent "more specific" logical possibilities, whereas sibling branches represent "alternative" logical possibilities.
 
-In Classical Propositional Logic, every sentence except atomic sentences and negated atomic sentences can be expanded in some way. You can try this out by just typing in one premise, and going through all the different forms a sentence could take:
+In Classical Propositional Logic, every sentence except atomic sentences and negated atomic sentences can result in the proof being expanded or split in some way. You can try this out by just typing in one premise, and going through all the other forms a sentence could take:
+
 * <code>¬¬p</code>
 * <code>p → q</code>
 * <code>p ∧ q</code>
@@ -69,22 +72,26 @@ In Classical Propositional Logic, every sentence except atomic sentences and neg
 * <code>¬(p ∧ q)</code>
 * <code>¬(p ∨ q)</code>
 
-So that's how you *flesh out the logical consequences*. Once you've "fleshed out the consequences" as much as you possibly can - once you've "used" every complex sentence until you're just left with (negated) atomic sentences - you take a look at the active branch. If, from the active branch or any of its parents, there is any line saying the sentence <code>¬A</code> with another line saying <code>A</code>, you have a "contradiction", and you "close the branch". You close the branch by putting an X at the bottom, and you move on to the next branch you haven't finished working on yet. (Or, if there are no other unfinished branches, your proof is complete!) If there aren't any contradictions, however, the argument must have been invalid: what we've done is found a logical possibility, a way things could have been, that makes the premises all true and the conclusions all false.
+So that's how you *flesh out the logical consequences*. Once you've "fleshed out the consequences" as much as you possibly can - once you've "used" every complex sentence until you're just left with atomic sentences and negated atomic sentences - you take a look at the active branch. If, from the active branch or any of its parents, there is any line saying the sentence <code>¬A</code> with another line saying <code>A</code>, you have a "contradiction", and you "close the branch". This should make sense: it's not logically possible for <code>A</code> to be both true and false. (This is not the case in para-consistent logics, but we'll get there shortly.) You close the branch by putting an X at the bottom, and you move on to the next branch you haven't finished working on yet. (Or, if there are no other unfinished branches, your proof is complete!) If there aren't any contradictions, however, the argument must have been invalid: what we've done is found a logical possibility, a way things could have been, that makes the premises all true and the conclusions all false.
 
 ### Paraconsistent tree proofs
 
-In paraconsistent logical systems like First-Degree Entailment, things work a little differently, because sentences might be both true and false, or neither true nor false. In Classical Propositional Logic, we essentially wrote "A is true" on a line by simply writing A, and we wrote "A is not true" by writing ¬A. However, in paraconsistent logics, we need to account for the possibility that something could fail to be true without being false and vice versa. For this, we introduce little tokens to tell us whether the sentence on the given line is true, not true, false or not false:
+In paraconsistent logical systems like First-Degree Entailment, things work a little differently, because sentences might be both true and false, or neither true nor false. In Classical Propositional Logic, we essentially wrote "A is true" on a line by simply writing <code>A</code>, and we wrote "A is not true" by writing <code>¬A</code>. However, in paraconsistent logics, we need to account for the possibility that something could fail to be true without being false and vice versa. For this, we introduce little tokens to tell us whether the sentence on the given line is true, not true, false or not false:
+
 * <img src=".\Graphics\truthmarkertrue.png" height="10px" width="10px"/> (true)
 * <img src=".\Graphics\truthmarkernottrue.png" height="10px" width="10px"/> (not true)
 * <img src=".\Graphics\truthmarkerfalse.png" height="10px" width="10px"/> (false)
 * <img src=".\Graphics\truthmarkernotfalse.png" height="10px" width="10px"/> (not false)
+
 Instead of doing double-negation elimination, we do simply negation-elimination (try it out and see how it works!). Because we can eliminate negation, we no longer need rules for negated complex sentences:
+
 * <code>¬(p → q)</code>
 * <code>¬(p ∧ q)</code>
 * <code>¬(p ∨ q)</code>
+
 However, we do need rules for all four truth-markers. I encourage you to try them all out and see how they work.
 
-Of course, since contradictions are considered "logically possible" in paraconsistent logics, we'll have to have a new criterion for when we're allowed to close a branch. That criterion is reasonably straightforward: if we have <img src=".\Graphics\truthmarkertrue.png" height="10px" width="10px"/> <code>A</code> on one line and <img src=".\Graphics\truthmarkernot.png" height="10px" width="10px"/> <code>A</code> on another, or <img src=".\Graphics\truthmarkerfalse.png" height="10px" width="10px"/> <code>A</code> on one line and <img src=".\Graphics\truthmarkernotfalse.png" height="10px" width="10px"/> <code>A</code> on another, we can close the branch.
+Of course, since contradictions are considered "logically possible" in paraconsistent logics, we'll have to have a new criterion for when we're allowed to close a branch. That criterion is reasonably straightforward: if we have <code><img src=".\Graphics\truthmarkertrue.png" height="10px" width="10px"/> A</code> on one line and <code><img src=".\Graphics\truthmarkernot.png" height="10px" width="10px"/> A</code> on another, or <code><img src=".\Graphics\truthmarkerfalse.png" height="10px" width="10px"/> A</code> on one line and <code><img src=".\Graphics\truthmarkernotfalse.png" height="10px" width="10px"/> A</code> on another, we can close the branch.
 
 ## How does it work?
 
