@@ -135,4 +135,4 @@ This is where the prover functions live. There's one for Classical Propositional
 
 ### Other bits
 
-There is a Graphics folder for all the graphics we need. The Input folder contains modules relating to user input, and Disply contains modules relating to displaying the proof. <code>Languages.js</code> contains a list of implemented logical systems or "languages", i.e. Classical Propositional Logic and First-Degree Entailment, and <code>PropositionalLogicProver.js</code> sets up the interface between the HTML page and the JavaScript modules.
+There is a Graphics folder for all the graphics we need. The Input folder contains modules relating to user input, and Display contains modules relating to displaying the proof. <code>Languages.js</code> contains a list of implemented logical systems or "languages", i.e. Classical Propositional Logic and First-Degree Entailment, and <code>PropositionalLogicProver.js</code> sets up the interface between the HTML webpage and the JavaScript modules.
