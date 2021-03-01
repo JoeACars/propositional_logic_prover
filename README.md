@@ -75,7 +75,16 @@ So that's how you *flesh out the logical consequences*. Once you've "fleshed out
 
 In paraconsistent logical systems like First-Degree Entailment, things work a little differently, because sentences might be both true and false, or neither true nor false. In Classical Propositional Logic, we essentially wrote "A is true" on a line by simply writing A, and we wrote "A is not true" by writing ¬A. However, in paraconsistent logics, we need to account for the possibility that something could fail to be true without being false and vice versa. For this, we introduce little tokens to tell us whether the sentence on the given line is true, not true, false or not false:
 * <img src=".\Graphics\truthmarkertrue.png" height="10px" width="10px"/> (true)
-* 
+* <img src=".\Graphics\truthmarkernottrue.png" height="10px" width="10px"/> (not true)
+* <img src=".\Graphics\truthmarkerfalse.png" height="10px" width="10px"/> (false)
+* <img src=".\Graphics\truthmarkernotfalse.png" height="10px" width="10px"/> (not false)
+Instead of doing double-negation elimination, we do simply negation-elimination (try it out and see how it works!). Because we can eliminate negation, we no longer need rules for negated complex sentences:
+* ¬(p → q)
+* ¬(p ∧ q)
+* ¬(p ∨ q)
+However, we do need rules for all four truth-markers. I encourage you to try them all out and see how they work.
+
+Of course, since contradictions are considered "logically possible" in paraconsistent logics, we'll have to have a new criterion for when we're allowed to close a branch. That criterion is reasonably straightforward: if we have <img src=".\Graphics\truthmarkertrue.png" height="10px" width="10px"/> <code>A</code> on one line and <img src=".\Graphics\truthmarkernot.png" height="10px" width="10px"/> <code>A</code> on another, or <img src=".\Graphics\truthmarkerfalse.png" height="10px" width="10px"/> <code>A</code> on one line and <img src=".\Graphics\truthmarkernotfalse.png" height="10px" width="10px"/> <code>A</code> on another, we can close the branch.
 
 ## How does it work?
 
@@ -102,8 +111,14 @@ The only potential problem these raises is that if you forget about the last bul
 
 ### TreeProofs
 
+First, we start with the basic elements of a line in a proof: truth-value markers (true, not true, false, not false) and justifications (which rule did we use to derive this line? from which other lines?). Sentences are already defined under Syntax. So, we put these three together and we have a sentential line content, represented by a <code>LineContentSentence</code> object, which is an implementation of the <code>LineContent</code> interface. A <code>Line</code> object is a <code>LineContent</code> object together with a line number.
 
+Why all the business with interfaces? Well, in some other (as-yet-unimplemented) logics, we need lines that don't contain sentences. Instead, they contain "accessibility relations", which you need know nothing about, other than that they aren't sentences. They're not p, q, r etc combined together with Operators. So, in the spirit of extendibility, we don't require that every <code>Line</code> has to have a sentence in it. Instead, it just has to have a <code>LineContent</code>, of which one species is a <code>LineContentSentence</code>, and another kind (as-yet-unimplemented) might be <code>LineContentAccessibilityRelation</code>.
+
+Now that we have Lines, we move on to <code>Segment</code>. Picture a tree proof with lots of branches. A <code>Segment</code> represents a piece of a branch running from wherever it starts to wherever it splits (or ends). Each <code>Segment</code> knows who its parent is (if it has one) and who its children are (if it has any).
+
+Finally, right up at the top if the <code>TreeProof</code> itself. This object has a reference to its root segment (the one at the very top, with no parent) and, if we're actively working on the proof, to its active segment. This is where prover functions (see next section) interact with the proof, so it includes functions for appending lines to the active segment, ending the active segment and moving on to the next one and retrieving the lines that can be used in the active segment, among other things.
 
 ### Prove
 
-## Extendibility
+This is where the prover functions live. There's one for Classical Propositional Logic, and one for First-Degree Entailment. There are also two functions for deciding whether or not to close a branch - for the former, we have <code>ContainsSententialContradiction()</code> for finding joint occurences of <code>A</code> and <code>¬A</code>. For the latter, we have <code>ContainsTruthValueContradiction()</code> for finding joint occurrences of <code>A</code> with incompatible truth-value markers.
