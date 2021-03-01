@@ -46,4 +46,64 @@ is invalid. However, something close to it is valid:
 
 This is a multi-conclusion argument: what it says is that if p and p → q are true, then either q is true or p ∧ ¬p is true. (And if you're wondering - yes, in First-Degree Entailment, p can be both true and false! We'll get to that later.)
 
+## How do you prove things?
+
+This software uses a family of proof methods called "tree proofs", so called because they have a kind of tree structure, with nodes and branches. The following is not supposed to be a rigorous introduction to tree proofs, but hopefully, even if you're new to tree proofs, you can get enough of a picture to piece together roughly what's going on. I recommend you follow along this explanation with some examples, which you can generate yourself using the program.
+
+Recall that an argument is *valid* if and only if it is logically impossible for all the premises to be true and all the conclusions to fail to be true. So essentially, what a tree proof does is assume that the premises are all true and the conclusions fail to be true, and fleshes out the logical consequences of those assumptions. If that lands us in contradiction, the argument must have been valid. If not, it was invalid.
+
+How can we *flesh out the logical consequences*? Well, it looks a little different depending on the logical system. But let's take Classical Propositional Logic to start off with, as it's the simplest. In this case, we "assume the premises are true" by simply writing them down, one to a line, and we "assume the conclusions fail to be true" by doing the same thing, but negating each of them first. (Try it out and see!)
+
+Now, we take a look at what we've got. If on any line, we have a double negation, e.g. <code>¬¬A</code> for some sentence <code>A</code>, we can append a new line saying <code>A</code>. For example, if we had <code>¬¬(p → q)</code>, we can append <code>p → q</code>. This rule is called "double negation elimination", because we "eliminate" the double negation. We can also, for example, expand a conditional: if we have <code>A ∧ B</code> for some sentences <code>A</code> and <code>B</code>, we can append <code>A</code> and we can append <code>B</code>. Makes sense, right? If <code>A ∧ B</code> is true, then <code>A</code> is true and <code>B</code> is true.
+
+We said that tree proofs involve branching. That's because some operators don't tell us anything certain about their operands, but they do restrict the possibilities. For example, if we have <code>A ∨ B</code>, we don't know anything about the truth of <code>A</code> nor of <code>B</code> on their own - but we do know that there are only two possibilities: either <code>A</code> is true, or <code>B</code> is true. (Of course, they could *both* be true - in formal logic, "or" is always inclusive, unless otherwise specified.) In a tree proof, we write this by *splitting* the proof into two branches. On the left branch, we append <code>A</code>, and on the right branch, we append <code>B</code>.
+
+Once you've split, you work on one branch at a time, typically from left-to-right. You can call the branch you're working on as the "active" branch. From a child branch, you can still use lines from the parent branch to continue expanding your proof. (Try this out with the premises p ∨ q and q ∨ r.) You can't use lines from your sibling branches, however. Child branches represent "more specific" logical possibilities, whereas sibling branches represent "alternative" logical possibilities.
+
+In Classical Propositional Logic, every sentence except atomic sentences and negated atomic sentences can be expanded in some way. You can try this out by just typing in one premise, and going through all the different forms a sentence could take:
+* ¬¬p
+* p → q
+* p ∧ q
+* p ∨ q
+* ¬(p → q)
+* ¬(p ∧ q)
+* ¬(p ∨ q)
+
+So that's how you *flesh out the logical consequences*. Once you've "fleshed out the consequences" as much as you possibly can - once you've "used" every complex sentence until you're just left with (negated) atomic sentences - you take a look at the active branch. If, from the active branch or any of its parents, there is any line saying the sentence <code>¬A</code> with another line saying <code>A</code>, you have a "contradiction", and you "close the branch". You close the branch by putting an X at the bottom, and you move on to the next branch you haven't finished working on yet. (Or, if there are no other unfinished branches, your proof is complete!) If there aren't any contradictions, however, the argument must have been invalid: what we've done is found a logical possibility, a way things could have been, that makes the premises all true and the conclusions all false.
+
+### Paraconsistent tree proofs
+
+In paraconsistent logical systems like First-Degree Entailment, things work a little differently, because sentences might be both true and false, or neither true nor false. In Classical Propositional Logic, we essentially wrote "A is true" on a line by simply writing A, and we wrote "A is not true" by writing ¬A. However, in paraconsistent logics, we need to account for the possibility that something could fail to be true without being false and vice versa. For this, we introduce little tokens to tell us whether the sentence on the given line is true, not true, false or not false:
+* <img src=".\Graphics\truthmarkertrue.png" height="10px" width="10px"/> (true)
+* 
+
 ## How does it work?
+
+The following sections are given in order of dependency. They are also the names of folders in the repository.
+
+### Syntax
+
+First, <code>Operator.js</code> defines the <code>Operator</code> class. Each instance of <code>Operator</code> has its own unique string id, and an integer arity. Negation is a unary (arity 1) operator, for instance, while conjunction is a binary (arity 2) operator. (Although not implemented here, there are in some logics operators with different arities, including operators of arbitrary arity such as n-ary conjunction, or even the standard zeroary operators, verum and falsum.)
+
+Then, <code>Operators.js</code> defines the <code>operators</code> global constant object, storing instances of the <code>Operator</code> class corresponding to the usual operators: negation, conjunction, disjunction and conditionals. In addition to those, there is also the trivial operator, which essentially means "do nothing to the sentence". If this sounds redundant, read on...
+
+Finally, <code>Sentence.js</code> defines the <code>Sentence</code> class, representing a sentence in formal logic. A <code>Sentence</code> object is essentially just an <code>Operator</code> together with a list of operands. The idea is that you can start of with the atomic sentences, p, q, r etc, and combine them using operators to make ever more complex sentences. You can retrieve the Operator of a Sentence by calling <code>Sentence.getOperator()</code> and you can retrieve the n<sup>th</sup> operand of a Sentence with <code>Sentence.getOperand(n)</code>.
+
+But what are atomic sentences? Given they are just the basic p, q, r etc, surely they have neither an operator nor an operand, so surely they can't be implemented by <code>Sentence</code>? However, if we were to implement atomic sentences this way, we'd run into problems. To keep our code simple and error-resistant, we should insist on three things:
+* sentences, whether atomic or complex, should always be represented by a Sentence object,
+* <code>Sentence.getOperator()</code> should always be defined and
+* <code>Sentence.getOperand(n)</code> should, if defined, always return another Sentence.
+
+The good news is, we tick all these boxes in the way we implement atomic sentences.
+* Atomic sentences are represented by Sentence objects (in particular, there's a fixed list of them, accessible by the static method <code>Sentence.getAtomicSentences()</code>). Complex Sentences are always constructed from these atomic Sentences by combining them with Operators.
+* In the case of atomic sentences, <code>Sentence.getOperator()</code> returns the trivial operator.
+* In the case of atomic sentences, <code>Sentence.getOperator(0)</code> returns itself.
+The only potential problem these raises is that if you forget about the last bullet point, you could get stuck in an infinite loop, calling <code>getOperator(0)</code> forever and ever and getting nowhere. Thankfully, there's really only one time you need to get the "value" of an atomic sentence, and that's when you're displaying it. Check out <code>Sentence.getDisplayString()</code> to see how this is handled.
+
+### TreeProofs
+
+
+
+### Prove
+
+## Extendibility
